@@ -1,0 +1,62 @@
+{
+  "name": "claw-planops",
+  "version": "0.1.0",
+  "description": "基于交付物证据的项目执行规划插件。从任务通知中识别要求，生成计划，通过检查真实文件进度判断任务是否完成。",
+  "author": "ClawPlanOps Team",
+  "tools": [
+    {
+      "name": "parse_task_requirements",
+      "description": "解析任务要求：从通知文本/链接内容/自然语言目标中提取任务名称、截止时间、交付物、约束条件",
+      "parameters": {
+        "content": { "type": "string", "required": true, "description": "任务通知、链接正文或用户目标文本" },
+        "input_type": { "type": "string", "required": false, "default": "text", "description": "输入类型：text 或 url" }
+      }
+    },
+    {
+      "name": "build_deliverable_plan",
+      "description": "根据任务要求生成交付物计划，包含阶段划分、交付物清单、微任务列表",
+      "parameters": {
+        "task_requirements": { "type": "object", "required": true, "description": "parse_task_requirements 的输出" },
+        "available_days": { "type": "number", "required": false, "default": 14, "description": "可用天数" },
+        "daily_available_hours": { "type": "number", "required": false, "default": 2, "description": "每日可用小时数" }
+      }
+    },
+    {
+      "name": "generate_calendar_schedule",
+      "description": "生成 .ics 日历文件，可导入 Apple Calendar / Outlook / Google Calendar",
+      "parameters": {
+        "micro_tasks": { "type": "array", "required": true, "description": "微任务列表" },
+        "start_date": { "type": "string", "required": true, "description": "开始日期 YYYY-MM-DD" },
+        "deadline": { "type": "string", "required": true, "description": "截止日期 YYYY-MM-DD" },
+        "preferred_work_time": { "type": "string", "required": false, "default": "20:00-22:00", "description": "每日偏好工作时间" },
+        "output_path": { "type": "string", "required": false, "default": "./output/schedule.ics", "description": "输出路径" }
+      }
+    },
+    {
+      "name": "check_progress_evidence",
+      "description": "扫描项目目录，检查真实文件证据判断进度，输出完成百分比和风险等级",
+      "parameters": {
+        "project_path": { "type": "string", "required": true, "description": "要扫描的项目路径" },
+        "evidence_rules": { "type": "array", "required": false, "default": [], "description": "自定义证据规则列表" }
+      }
+    },
+    {
+      "name": "generate_daily_progress_report",
+      "description": "生成每日进度报告，对比计划与实际完成情况",
+      "parameters": {
+        "project_path": { "type": "string", "required": true, "description": "项目路径" },
+        "plan": { "type": "object", "required": true, "description": "build_deliverable_plan 的输出" },
+        "schedule": { "type": "object", "required": true, "description": "日历排期信息" }
+      }
+    },
+    {
+      "name": "reschedule_plan",
+      "description": "根据进度落后情况生成动态重排建议：砍功能、压缩任务、优先级调整",
+      "parameters": {
+        "progress_report": { "type": "object", "required": true, "description": "check_progress_evidence 或 generate_daily_progress_report 的输出" },
+        "original_plan": { "type": "object", "required": true, "description": "build_deliverable_plan 的输出" },
+        "deadline": { "type": "string", "required": true, "description": "截止日期 YYYY-MM-DD" }
+      }
+    }
+  ]
+}

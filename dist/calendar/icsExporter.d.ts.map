@@ -1,0 +1,1 @@
+{"version":3,"file":"icsExporter.d.ts","sourceRoot":"","sources":["../../src/calendar/icsExporter.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,SAAS,EAAiB,cAAc,EAAE,MAAM,UAAU,CAAC;AAEzE;;;GAGG;AACH,wBAAgB,wBAAwB,CACtC,UAAU,EAAE,SAAS,EAAE,EACvB,SAAS,EAAE,MAAM,EACjB,QAAQ,EAAE,MAAM,EAChB,iBAAiB,GAAE,MAAsB,EACzC,UAAU,GAAE,MAAgC,GAC3C,cAAc,CAgChB"}

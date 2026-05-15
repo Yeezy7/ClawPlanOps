@@ -1,0 +1,53 @@
+{
+  "task_requirements": {
+    "task_name": "郑州大学第一届四创大赛 E2 技能插件开发赛",
+    "deadline": "2026-06-22T12:00:00",
+    "deliverables": [
+      "OpenClaw 插件代码",
+      "openclaw.plugin.json",
+      "README.md",
+      "项目申报表",
+      "答辩 PPT",
+      "演示视频"
+    ],
+    "constraints": [
+      "团队人数不超过5人",
+      "需开发具有实际功能的技能插件",
+      "需按时提交电子版材料"
+    ],
+    "submission_rules": [
+      "电子版材料发送至：zzu_e2_contest@zzu.edu.cn",
+      "邮件主题格式：[E2赛道]团队名称-插件名称",
+      "所有材料打包为一个 ZIP 文件，命名格式：团队名称_插件名称.zip"
+    ]
+  },
+  "deliverable_plan": {
+    "total_days": 38,
+    "daily_hours": 2,
+    "phases": [
+      {
+        "phase_name": "第1阶段：OpenClaw 插件代码、openclaw.plugin.json",
+        "goal": "完成 OpenClaw 插件代码、openclaw.plugin.json"
+      },
+      {
+        "phase_name": "第2阶段：README.md、项目申报表",
+        "goal": "完成 README.md、项目申报表"
+      },
+      {
+        "phase_name": "第3阶段：答辩 PPT、演示视频",
+        "goal": "完成 答辩 PPT、演示视频"
+      }
+    ],
+    "micro_tasks_count": 25
+  },
+  "calendar": {
+    "ics_file": "output/schedule.ics",
+    "event_count": 25
+  },
+  "progress_check": {
+    "progress_percent": 85,
+    "risk_level": "low",
+    "completed": 10,
+    "missing": 2
+  }
+}

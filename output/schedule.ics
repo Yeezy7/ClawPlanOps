@@ -1,0 +1,361 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ClawPlanOps//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:ClawPlanOps Schedule
+X-WR-TIMEZONE:Asia/Shanghai
+BEGIN:VEVENT
+DTSTART:20260515T200000
+DTEND:20260515T204500
+SUMMARY:创建项目目录结构
+DESCRIPTION:完成标准：目录结构已创建，核心文件已就位\n关联交付物：DEL-01\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：45 分钟
+UID:T-001-1778828552016-mqw5t@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 创建项目目录结构 - 目录结构已创建，核心文件已就位
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 创建项目目录结构
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260515T204500
+DTEND:20260515T213000
+SUMMARY:初始化 package.json 和 tsconfig.json
+DESCRIPTION:完成标准：目录结构已创建，核心文件已就位\n关联交付物：DEL-01\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：45 分钟
+UID:T-002-1778828552016-2skky@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 初始化 package.json 和 tsconfig.json - 目录结构已创建，核心文件已就位
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 初始化 package.json 和 tsconfig.json
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260516T200000
+DTEND:20260516T210000
+SUMMARY:编写核心工具函数
+DESCRIPTION:完成标准：OpenClaw 插件代码（含完整项目源码 相关代码/内容已完成并通过初步检查\n关联交付物：DEL-01\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：60 分钟
+UID:T-003-1778828552016-9o0oi@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 编写核心工具函数 - OpenClaw 插件代码（含完整项目源码 相关代码/内容已完成并通过初步检查
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 编写核心工具函数
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260517T200000
+DTEND:20260517T213000
+SUMMARY:编写单元测试
+DESCRIPTION:完成标准：OpenClaw 插件代码（含完整项目源码 相关代码/内容已完成并通过初步检查\n关联交付物：DEL-01\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：90 分钟
+UID:T-004-1778828552016-qfr3d@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 编写单元测试 - OpenClaw 插件代码（含完整项目源码 相关代码/内容已完成并通过初步检查
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 编写单元测试
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260518T200000
+DTEND:20260518T213000
+SUMMARY:集成测试
+DESCRIPTION:完成标准：测试通过，OpenClaw 插件代码（含完整项目源码 功能验证正常\n关联交付物：DEL-01\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：90 分钟
+UID:T-005-1778828552016-1f1s0@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 集成测试 - 测试通过，OpenClaw 插件代码（含完整项目源码 功能验证正常
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 集成测试
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260518T213000
+DTEND:20260518T220000
+SUMMARY:定义插件元数据
+DESCRIPTION:完成标准：openclaw.plugin.json 插件配置文件 的 定义插件元数据 已完成\n关联交付物：DEL-02\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：30 分钟
+UID:T-006-1778828552016-uf8n8@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 定义插件元数据 - openclaw.plugin.json 插件配置文件 的 定义插件元数据 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 定义插件元数据
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260519T200000
+DTEND:20260519T210000
+SUMMARY:声明工具函数签名
+DESCRIPTION:完成标准：openclaw.plugin.json 插件配置文件 的 声明工具函数签名 已完成\n关联交付物：DEL-02\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：60 分钟
+UID:T-007-1778828552016-uroc4@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 声明工具函数签名 - openclaw.plugin.json 插件配置文件 的 声明工具函数签名 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 声明工具函数签名
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260519T210000
+DTEND:20260519T220000
+SUMMARY:配置参数和返回值
+DESCRIPTION:完成标准：openclaw.plugin.json 插件配置文件 的 配置参数和返回值 已完成\n关联交付物：DEL-02\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：60 分钟
+UID:T-008-1778828552016-9huxk@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 配置参数和返回值 - openclaw.plugin.json 插件配置文件 的 配置参数和返回值 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 配置参数和返回值
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260520T200000
+DTEND:20260520T213000
+SUMMARY:测试插件加载
+DESCRIPTION:完成标准：测试通过，openclaw.plugin.json 插件配置文件 功能验证正常\n关联交付物：DEL-02\n所属阶段：第1阶段：OpenClaw 插件代码（含完整项目源码、openclaw.plugin.json 插件配置文件\n优先级：high\n预计耗时：90 分钟
+UID:T-009-1778828552016-ek4b4@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 测试插件加载 - 测试通过，openclaw.plugin.json 插件配置文件 功能验证正常
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 测试插件加载
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260521T200000
+DTEND:20260521T210000
+SUMMARY:写项目简介
+DESCRIPTION:完成标准：README.md 项目说明文档 的 写项目简介 已完成\n关联交付物：DEL-03\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：high\n预计耗时：60 分钟
+UID:T-010-1778828552016-8pl8l@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 写项目简介 - README.md 项目说明文档 的 写项目简介 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 写项目简介
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260521T210000
+DTEND:20260521T220000
+SUMMARY:写安装说明
+DESCRIPTION:完成标准：README.md 项目说明文档 的 写安装说明 已完成\n关联交付物：DEL-03\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：high\n预计耗时：60 分钟
+UID:T-011-1778828552016-9aomf@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 写安装说明 - README.md 项目说明文档 的 写安装说明 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 写安装说明
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260522T200000
+DTEND:20260522T210000
+SUMMARY:写使用示例
+DESCRIPTION:完成标准：README.md 项目说明文档 的 写使用示例 已完成\n关联交付物：DEL-03\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：high\n预计耗时：60 分钟
+UID:T-012-1778828552016-nskwn@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 写使用示例 - README.md 项目说明文档 的 写使用示例 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 写使用示例
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260522T210000
+DTEND:20260522T220000
+SUMMARY:写API文档
+DESCRIPTION:完成标准：README.md 项目说明文档 的 写API文档 已完成\n关联交付物：DEL-03\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：high\n预计耗时：60 分钟
+UID:T-013-1778828552016-fv2eg@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 写API文档 - README.md 项目说明文档 的 写API文档 已完成
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:⚠️ 高优先级任务明天截止: 写API文档
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260523T200000
+DTEND:20260523T204500
+SUMMARY:填写项目基本信息
+DESCRIPTION:完成标准：项目申报表（电子版 信息填写完整\n关联交付物：DEL-04\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：medium\n预计耗时：45 分钟
+UID:T-014-1778828552016-8f4oo@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 填写项目基本信息 - 项目申报表（电子版 信息填写完整
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260523T204500
+DTEND:20260523T213000
+SUMMARY:填写技术方案
+DESCRIPTION:完成标准：项目申报表（电子版 信息填写完整\n关联交付物：DEL-04\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：medium\n预计耗时：45 分钟
+UID:T-015-1778828552016-nbq8n@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 填写技术方案 - 项目申报表（电子版 信息填写完整
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260524T200000
+DTEND:20260524T204500
+SUMMARY:填写创新点
+DESCRIPTION:完成标准：项目申报表（电子版 信息填写完整\n关联交付物：DEL-04\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：medium\n预计耗时：45 分钟
+UID:T-016-1778828552016-dg714@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 填写创新点 - 项目申报表（电子版 信息填写完整
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260524T204500
+DTEND:20260524T213000
+SUMMARY:排版和校对
+DESCRIPTION:完成标准：项目申报表（电子版 质量检查通过\n关联交付物：DEL-04\n所属阶段：第2阶段：README.md 项目说明文档、项目申报表（电子版\n优先级：medium\n预计耗时：45 分钟
+UID:T-017-1778828552016-1lq0r@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 排版和校对 - 项目申报表（电子版 质量检查通过
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260525T200000
+DTEND:20260525T210000
+SUMMARY:完成 答辩 PPT 初稿
+DESCRIPTION:完成标准：内容大纲清晰，涵盖所有必需章节\n关联交付物：DEL-05\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：medium\n预计耗时：60 分钟
+UID:T-018-1778828552016-o5dlz@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 完成 答辩 PPT 初稿 - 内容大纲清晰，涵盖所有必需章节
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260525T210000
+DTEND:20260525T213000
+SUMMARY:检查 答辩 PPT 内容
+DESCRIPTION:完成标准：内容大纲清晰，涵盖所有必需章节\n关联交付物：DEL-05\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：medium\n预计耗时：30 分钟
+UID:T-019-1778828552016-r3lwr@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 检查 答辩 PPT 内容 - 内容大纲清晰，涵盖所有必需章节
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260525T213000
+DTEND:20260525T220000
+SUMMARY:最终确认 答辩 PPT
+DESCRIPTION:完成标准：内容大纲清晰，涵盖所有必需章节\n关联交付物：DEL-05\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：medium\n预计耗时：30 分钟
+UID:T-020-1778828552016-8mkm1@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 最终确认 答辩 PPT - 内容大纲清晰，涵盖所有必需章节
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260526T200000
+DTEND:20260526T210000
+SUMMARY:编写演示脚本
+DESCRIPTION:完成标准：演示视频（1-2分钟 相关代码/内容已完成并通过初步检查\n关联交付物：DEL-06\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：low\n预计耗时：60 分钟
+UID:T-021-1778828552016-glici@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 编写演示脚本 - 演示视频（1-2分钟 相关代码/内容已完成并通过初步检查
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260527T200000
+DTEND:20260527T213000
+SUMMARY:录制操作演示
+DESCRIPTION:完成标准：视频录制完成，时长符合要求\n关联交付物：DEL-06\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：low\n预计耗时：90 分钟
+UID:T-022-1778828552016-atg0o@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 录制操作演示 - 视频录制完成，时长符合要求
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260528T200000
+DTEND:20260528T213000
+SUMMARY:配音和字幕
+DESCRIPTION:完成标准：演示视频（1-2分钟 的 配音和字幕 已完成\n关联交付物：DEL-06\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：low\n预计耗时：90 分钟
+UID:T-023-1778828552016-oef1q@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 配音和字幕 - 演示视频（1-2分钟 的 配音和字幕 已完成
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260529T200000
+DTEND:20260529T213000
+SUMMARY:剪辑和导出
+DESCRIPTION:完成标准：演示视频（1-2分钟 的 剪辑和导出 已完成\n关联交付物：DEL-06\n所属阶段：第3阶段：答辩 PPT、演示视频（1-2分钟\n优先级：low\n预计耗时：90 分钟
+UID:T-024-1778828552016-6x0qy@claw-planops
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:⏰ 剪辑和导出 - 演示视频（1-2分钟 的 剪辑和导出 已完成
+END:VALARM
+END:VEVENT
+END:VCALENDAR

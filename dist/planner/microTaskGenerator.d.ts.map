@@ -1,0 +1,1 @@
+{"version":3,"file":"microTaskGenerator.d.ts","sourceRoot":"","sources":["../../src/planner/microTaskGenerator.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,eAAe,EAAE,KAAK,EAAE,MAAM,UAAU,CAAC;AAElE;;GAEG;AACH,wBAAgB,kBAAkB,CAChC,YAAY,EAAE,eAAe,EAAE,EAC/B,MAAM,EAAE,KAAK,EAAE,EACf,UAAU,EAAE,MAAM,GACjB,SAAS,EAAE,CAwBb"}
