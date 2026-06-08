@@ -2,20 +2,34 @@
   "name": "claw-planops",
   "version": "0.2.0",
   "description": "OpenClaw plugin: task parsing → plan generation → calendar export → progress evidence check → reschedule",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "claw-planops": "./dist/cli.js"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2"
+    },
+    "build": {
+      "openclawVersion": "2026.3.24-beta.2"
+    }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "demo": "node dist/cli.js full examples/zzu_four_creation_notice.txt .",
     "demo:parse": "node dist/cli.js parse examples/zzu_four_creation_notice.txt",
     "demo:check": "node dist/cli.js check ."
   },
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
-    "@types/node": "^20.0.0"
+    "vitest": "^4.1.7"
   }
 }

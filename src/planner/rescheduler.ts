@@ -37,7 +37,11 @@ export function reschedulePlan(
 
   const isOnTrack = actualPercent >= expectedPercent - 10; // 10% tolerance
 
-  if (isOnTrack) {
+  // Check for critical missing items (high-weight evidence that hasn't passed)
+  const criticalMissing = progressReport.missing.filter((r) => r.weight >= 10);
+  const hasCriticalGaps = criticalMissing.length >= 2;
+
+  if (isOnTrack && !hasCriticalGaps) {
     return {
       delay_days: 0,
       is_on_track: true,
@@ -50,6 +54,28 @@ export function reschedulePlan(
         (p) => new Date(p.end_date) >= new Date()
       ),
       advice: ['进度正常，保持当前节奏', '建议预留 2 天缓冲时间应对突发情况'],
+    };
+  }
+
+  // On track by percentage but has critical gaps — warn but don't reschedule
+  if (isOnTrack && hasCriticalGaps) {
+    const advice: string[] = [
+      '整体进度正常，但有关键交付物尚未完成',
+      `关键缺失项: ${criticalMissing.map((r) => r.description).join('、')}`,
+      '建议优先补齐以上缺失项，再继续其他任务',
+    ];
+    return {
+      delay_days: 0,
+      is_on_track: true,
+      priority_tasks: originalPlan.micro_tasks.filter(
+        (t) => t.priority === 'high'
+      ),
+      removed_tasks: [],
+      compressed_tasks: [],
+      recommended_next_plan: originalPlan.phases.filter(
+        (p) => new Date(p.end_date) >= new Date()
+      ),
+      advice,
     };
   }
 

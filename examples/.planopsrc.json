@@ -1,0 +1,35 @@
+{
+  "name": "ClawPlanOps 演示项目",
+  "preferred_work_time": "20:00-22:00",
+  "daily_available_hours": 2,
+  "output_dir": "./output",
+  "exclude_patterns": ["node_modules", ".git", "dist", ".claude"],
+  "evidence_rules": [
+    {
+      "id": "DEMO-001",
+      "description": "openclaw.plugin.json 必须存在",
+      "file_patterns": ["openclaw.plugin.json"],
+      "check_type": "file_exists",
+      "weight": 15,
+      "deliverable_id": "PLUGIN-CONFIG"
+    },
+    {
+      "id": "DEMO-002",
+      "description": "src/ 目录必须有 .ts 文件",
+      "file_patterns": ["src/**/*.ts"],
+      "check_type": "file_exists",
+      "weight": 15,
+      "deliverable_id": "SOURCE-CODE"
+    }
+  ],
+  "deliverables": {
+    "插件配置文件": {
+      "sub_tasks": ["创建 openclaw.plugin.json", "定义工具签名", "测试加载"],
+      "evidence": ["openclaw.plugin.json"]
+    },
+    "演示视频": {
+      "sub_tasks": ["写脚本", "录制", "剪辑", "导出"],
+      "evidence": ["演示视频.mp4"]
+    }
+  }
+}

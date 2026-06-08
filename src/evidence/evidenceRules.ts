@@ -28,7 +28,7 @@ export const DEFAULT_EVIDENCE_RULES: EvidenceRule[] = [
     description: 'openclaw.plugin.json 存在',
     file_patterns: ['openclaw.plugin.json'],
     check_type: 'file_exists',
-    weight: 15,
+    weight: 10,
     deliverable_id: 'DEL-01',
   },
   {

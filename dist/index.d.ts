@@ -1,28 +1,38 @@
-import { parseTaskRequirements } from './tools/parseTaskRequirements';
-import { buildDeliverablePlan } from './tools/buildDeliverablePlan';
-import { generateCalendarSchedule } from './tools/generateCalendarSchedule';
-import { checkProgressEvidence } from './tools/checkProgressEvidence';
-import { generateDailyProgressReport } from './tools/generateDailyProgressReport';
-import { reschedulePlan } from './tools/reschedulePlan';
-import { fetchURLContent } from './planner/urlFetcher';
-import { checkGitEvidence } from './evidence/gitEvidence';
-import type { GitEvidenceRule } from './evidence/gitEvidence';
-import { exportMarkdownPlan, exportMarkdownProgress, exportMarkdownReschedule } from './report/markdownExporter';
-import { loadProjectConfig, resolveConfig, generateConfigTemplate } from './config/projectConfig';
-import type { ProjectConfig } from './config/projectConfig';
-import type { TaskRequirements, DeliverablePlan, CalendarResult, ProgressReport, DailyReport, RescheduleResult, Phase, MicroTask, DeliverableItem, EvidenceRule, EvidenceResult, CalendarEvent, RiskLevel } from './types';
-export { parseTaskRequirements, buildDeliverablePlan, generateCalendarSchedule, checkProgressEvidence, generateDailyProgressReport, reschedulePlan, fetchURLContent, checkGitEvidence, exportMarkdownPlan, exportMarkdownProgress, exportMarkdownReschedule, loadProjectConfig, resolveConfig, generateConfigTemplate, };
-export type { TaskRequirements, DeliverablePlan, CalendarResult, ProgressReport, DailyReport, RescheduleResult, Phase, MicroTask, DeliverableItem, EvidenceRule, EvidenceResult, CalendarEvent, RiskLevel, GitEvidenceRule, ProjectConfig, };
-export declare const plugin: {
+export { parseTaskRequirements } from './tools/parseTaskRequirements';
+export { buildDeliverablePlan } from './tools/buildDeliverablePlan';
+export { generateCalendarSchedule } from './tools/generateCalendarSchedule';
+export { importToAppleCalendar } from './calendar/appleCalendar';
+export { checkProgressEvidence } from './tools/checkProgressEvidence';
+export { generateDailyProgressReport } from './tools/generateDailyProgressReport';
+export { reschedulePlan } from './tools/reschedulePlan';
+export { parseTaskRequirements as clawplanops_parse_task_requirements } from './tools/parseTaskRequirements';
+export { buildDeliverablePlan as clawplanops_build_deliverable_plan } from './tools/buildDeliverablePlan';
+export { generateCalendarSchedule as clawplanops_generate_calendar_schedule } from './tools/generateCalendarSchedule';
+export { checkProgressEvidence as clawplanops_check_progress_evidence } from './tools/checkProgressEvidence';
+export { generateDailyProgressReport as clawplanops_generate_daily_progress_report } from './tools/generateDailyProgressReport';
+export { reschedulePlan as clawplanops_reschedule_plan } from './tools/reschedulePlan';
+export { fetchURLContent } from './planner/urlFetcher';
+export { aiParseTaskRequirements } from './planner/aiParser';
+export { checkGitEvidence } from './evidence/gitEvidence';
+export { exportMarkdownPlan, exportMarkdownProgress, exportMarkdownReschedule } from './report/markdownExporter';
+export { loadProjectConfig, resolveConfig, generateConfigTemplate } from './config/projectConfig';
+export type { TaskRequirements, DeliverablePlan, CalendarResult, ProgressReport, DailyReport, RescheduleResult, Phase, MicroTask, DeliverableItem, EvidenceRule, EvidenceResult, CalendarEvent, RiskLevel, } from './types';
+export type { GitEvidenceRule } from './evidence/gitEvidence';
+export type { ProjectConfig } from './config/projectConfig';
+export type { AppleCalendarResult } from './calendar/appleCalendar';
+/**
+ * Plugin lifecycle: called when OpenClaw loads this plugin.
+ * Provides the OpenClaw API for registering tools, hooks, etc.
+ */
+export declare function register(api: Record<string, unknown>): void;
+/**
+ * Default export for OpenClaw plugin entry.
+ */
+declare const pluginEntry: {
+    id: string;
     name: string;
-    version: string;
-    tools: {
-        parse_task_requirements: typeof parseTaskRequirements;
-        build_deliverable_plan: typeof buildDeliverablePlan;
-        generate_calendar_schedule: typeof generateCalendarSchedule;
-        check_progress_evidence: typeof checkProgressEvidence;
-        generate_daily_progress_report: typeof generateDailyProgressReport;
-        reschedule_plan: typeof reschedulePlan;
-    };
+    description: string;
+    register: typeof register;
 };
+export default pluginEntry;
 //# sourceMappingURL=index.d.ts.map

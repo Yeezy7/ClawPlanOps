@@ -76,7 +76,6 @@ function scheduleEvents(
     // If doesn't fit in today's remaining slot, move to next day
     if (taskMin > daySlotRemaining) {
       currentDate.setDate(currentDate.getDate() + 1);
-      if (currentDate > endDate) break; // out of time
 
       daySlotRemaining = slotMinutes;
       currentSlotStart = new Date(currentDate);
@@ -87,6 +86,11 @@ function scheduleEvents(
     const actualMin = Math.min(taskMin, daySlotRemaining);
     const endTime = new Date(currentSlotStart);
     endTime.setMinutes(endTime.getMinutes() + actualMin);
+    const isPastDeadline = currentSlotStart > endDate;
+    const riskNote = [
+      task.priority === 'high' ? '高优先级，延期将影响整体进度' : '',
+      isPastDeadline ? '排期已超出截止时间，请增加每日可用时间或压缩任务' : '',
+    ].filter(Boolean).join('；');
 
     events.push({
       uid: `${task.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@claw-planops`,
@@ -97,12 +101,13 @@ function scheduleEvents(
         `所属阶段：${task.phase_name}`,
         `优先级：${task.priority}`,
         `预计耗时：${actualMin} 分钟`,
-      ].join('\\n'),
+        isPastDeadline ? `风险提示：排期已超出截止时间 ${deadline}` : '',
+      ].filter(Boolean).join('\\n'),
       start: formatICSDate(currentSlotStart),
       end: formatICSDate(endTime),
       completion_criteria: task.completion_criteria,
       deliverable_id: task.deliverable_id,
-      risk_note: task.priority === 'high' ? '高优先级，延期将影响整体进度' : '',
+      risk_note: riskNote,
     });
 
     daySlotRemaining -= actualMin;

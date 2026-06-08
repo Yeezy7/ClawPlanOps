@@ -3,45 +3,74 @@
  * ClawPlanOps CLI – 命令行工具入口
  *
  * Usage:
- *   claw-planops parse <file|text>
+ *   claw-planops parse <file|text> [--ai <api-url>]
  *   claw-planops plan <requirements.json|file>
  *   claw-planops calendar <plan.json>
  *   claw-planops check <project-path>
  *   claw-planops report <project-path> <plan.json>
  *   claw-planops reschedule <progress.json> <plan.json>
- *   claw-planops full <notice-file> <project-path>
+ *   claw-planops full <notice-file> <project-path> [--ai <api-url>]
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as readline from 'readline';
 import { parseTaskRequirements } from './tools/parseTaskRequirements';
 import { buildDeliverablePlan } from './tools/buildDeliverablePlan';
 import { generateCalendarSchedule } from './tools/generateCalendarSchedule';
 import { checkProgressEvidence } from './tools/checkProgressEvidence';
 import { generateDailyProgressReport } from './tools/generateDailyProgressReport';
 import { reschedulePlan } from './tools/reschedulePlan';
-import { exportMarkdownPlan } from './report/markdownExporter';
+import { exportMarkdownPlan, exportMarkdownProgress, exportMarkdownReschedule } from './report/markdownExporter';
+import type { DeliverablePlan } from './types';
+import { resolveConfig } from './config/projectConfig';
+import { importToAppleCalendar } from './calendar/appleCalendar';
 
 const cmd = process.argv[2];
-const args = process.argv.slice(3);
+const rawArgs = process.argv.slice(3);
+
+// Parse flags
+let aiMode = false;
+let aiEndpoint = '';
+let appleCalMode = false;
+const args: string[] = [];
+for (let i = 0; i < rawArgs.length; i++) {
+  if (rawArgs[i] === '--ai') {
+    aiMode = true;
+    if (rawArgs[i + 1] && !rawArgs[i + 1].startsWith('--')) {
+      aiEndpoint = rawArgs[i + 1];
+      i++;
+    }
+  } else if (rawArgs[i] === '--apple-cal') {
+    appleCalMode = true;
+  } else {
+    args.push(rawArgs[i]);
+  }
+}
 
 function printHelp(): void {
   console.log(`
 ClawPlanOps – 基于交付物证据的项目执行规划工具
 
 命令:
-  parse <file>               解析任务通知，输出结构化任务要求 JSON
+  parse <file> [--ai [url]]   解析任务通知，--ai 使用 AI 解析（更准确）
   plan <req.json> [days] [hrs]  根据任务要求生成交付物计划
-  calendar <plan.json>       生成 .ics 日历文件
-  check <project-path>       检查项目进度证据
+  calendar <plan.json> [--apple-cal]  生成 .ics 日历文件，--apple-cal 导入 macOS 日历
+  check <project-path>        检查项目进度证据
   report <project-path> <plan.json>  生成每日进度报告
   reschedule <progress.json> <plan.json>  生成动态重排建议
-  full <notice-file> <project-path>      运行完整 6 步流程
-  help                       显示此帮助信息
+  full <notice-file> <project-path> [--ai [url]] [--apple-cal]  完整 6 步流程
+  help                        显示此帮助信息
+
+AI 模式:
+  使用 --ai 标志启用 AI 解析，可处理任意格式的通知文本。
+  --ai          使用默认 OpenAI 兼容端点 (127.0.0.1:11434)
+  --ai <url>    指定 API 端点 URL
 
 示例:
   claw-planops parse examples/zzu_four_creation_notice.txt
-  claw-planops full examples/zzu_four_creation_notice.txt .
+  claw-planops parse notice.txt --ai
+  claw-planops full notice.txt . --ai http://localhost:11434/v1
 `);
 }
 
@@ -58,6 +87,37 @@ function printJSON(data: unknown): void {
   console.log(JSON.stringify(data, null, 2));
 }
 
+function askConfirmation(message: string): Promise<boolean> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(`${message} (y/N) `, (answer) => {
+      rl.close();
+      resolve(answer.trim().toLowerCase() === 'y');
+    });
+  });
+}
+
+function createAICaller(): (prompt: string) => Promise<string> {
+  const endpoint = aiEndpoint || 'http://127.0.0.1:11434/v1/chat/completions';
+  return async (prompt: string): Promise<string> => {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'default',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 2000,
+        temperature: 0,
+      }),
+    });
+    if (!res.ok) throw new Error(`AI API error: ${res.status} ${res.statusText}`);
+    const data = await res.json() as Record<string, unknown>;
+    const choices = data.choices as Array<{ message: { content: string } }>;
+    if (!choices?.[0]?.message?.content) throw new Error('AI API returned no content');
+    return choices[0].message.content;
+  };
+}
+
 // ---- command handlers ----
 
 async function cmdParse(): Promise<void> {
@@ -70,13 +130,21 @@ async function cmdParse(): Promise<void> {
   if (fs.existsSync(input)) {
     content = readText(input);
   } else if (input.startsWith('http://') || input.startsWith('https://')) {
-    const result = await parseTaskRequirements({ content: input, input_type: 'url' });
+    const result = await parseTaskRequirements({
+      content: input,
+      input_type: 'url',
+      callLLM: aiMode ? createAICaller() : undefined,
+    });
     printJSON(result);
     return;
   } else {
     content = input;
   }
-  const result = await parseTaskRequirements({ content });
+  const result = await parseTaskRequirements({
+    content,
+    callLLM: aiMode ? createAICaller() : undefined,
+  });
+  console.error(aiMode ? '[AI 模式]' : '[正则模式]');
   printJSON(result);
 }
 
@@ -89,10 +157,12 @@ function cmdPlan(): void {
   const reqs = readJSON(filePath) as Parameters<typeof buildDeliverablePlan>[0]['task_requirements'];
   const days = args[1] ? parseInt(args[1]) : undefined;
   const hours = args[2] ? parseInt(args[2]) : undefined;
+  const cfg = resolveConfig('.');
   const result = buildDeliverablePlan({
     task_requirements: reqs,
     available_days: days,
     daily_available_hours: hours,
+    custom_templates: Object.keys(cfg.deliverables).length > 0 ? cfg.deliverables : undefined,
   });
   printJSON(result);
 
@@ -105,22 +175,42 @@ function cmdPlan(): void {
   console.error(`\nMarkdown 计划已导出: ${mdPath}`);
 }
 
-function cmdCalendar(): void {
+async function cmdCalendar(): Promise<void> {
   const filePath = args[0];
   if (!filePath) {
     console.error('错误: 请提供计划 JSON 文件路径');
     process.exit(1);
   }
-  const plan = readJSON(filePath) as Parameters<typeof generateCalendarSchedule>[0];
+  const plan = readJSON(filePath) as DeliverablePlan;
   const result = generateCalendarSchedule({
-    micro_tasks: (plan as any).micro_tasks,
-    start_date: (plan as any).start_date,
-    deadline: (plan as any).deadline,
+    micro_tasks: plan.micro_tasks,
+    start_date: plan.start_date,
+    deadline: plan.deadline,
     preferred_work_time: args[1] || undefined,
     output_path: args[2] || './output/schedule.ics',
   });
   console.log(`日历已生成: ${result.ics_file_path}`);
   console.log(`事件数: ${result.event_count}`);
+
+  // Apple Calendar import with confirmation
+  if (appleCalMode) {
+    console.log(`\n即将导入 ${result.event_count} 个事件到 macOS 日历 (日历名: ClawPlanOps)`);
+    console.log('包含：');
+    const highPrio = result.events.filter((e) => e.risk_note).length;
+    console.log(`  - ${result.event_count} 个事件，每个带 30 分钟提醒`);
+    if (highPrio > 0) console.log(`  - ${highPrio} 个高优先级事件额外带 1 天前提醒`);
+    const confirmed = await askConfirmation('确认导入到 macOS 日历？');
+    if (confirmed) {
+      const importResult = importToAppleCalendar(result.events);
+      if (importResult.success) {
+        console.log(`✅ 成功导入 ${importResult.imported_count} 个事件到 "${importResult.calendar_name}" 日历`);
+      } else {
+        console.error(`❌ 导入失败: ${importResult.errors.join(', ')}`);
+      }
+    } else {
+      console.log('已取消导入');
+    }
+  }
 }
 
 function cmdCheck(): void {
@@ -129,7 +219,6 @@ function cmdCheck(): void {
   printJSON(result);
 
   // Also export markdown
-  const { exportMarkdownProgress } = require('./report/markdownExporter');
   const md = exportMarkdownProgress(result);
   const mdPath = path.resolve('./output/progress_report.md');
   const dir = path.dirname(mdPath);
@@ -169,8 +258,8 @@ function cmdReschedule(): void {
     process.exit(1);
   }
   const progress = readJSON(progressPath) as Parameters<typeof reschedulePlan>[0]['progress_report'];
-  const plan = readJSON(planPath) as Parameters<typeof reschedulePlan>[0]['original_plan'];
-  const deadline = (plan as any).deadline || '2026-12-31';
+  const plan = readJSON(planPath) as DeliverablePlan;
+  const deadline = plan.deadline || '2026-12-31';
   const result = reschedulePlan({
     progress_report: progress,
     original_plan: plan,
@@ -179,7 +268,6 @@ function cmdReschedule(): void {
   printJSON(result);
 
   // Export markdown
-  const { exportMarkdownReschedule } = require('./report/markdownExporter');
   const md = exportMarkdownReschedule(result);
   const mdPath = path.resolve('./output/reschedule_report.md');
   const dir = path.dirname(mdPath);
@@ -202,9 +290,12 @@ async function cmdFull(): Promise<void> {
   console.log('═══════════════════════════════════════════\n');
 
   // Step 1: Parse
-  console.log('━ Step 1/6: 解析任务要求');
+  console.log(`━ Step 1/6: 解析任务要求${aiMode ? ' [AI 模式]' : ''}`);
   const content = readText(noticeFile);
-  const reqs = await parseTaskRequirements({ content });
+  const reqs = await parseTaskRequirements({
+    content,
+    callLLM: aiMode ? createAICaller() : undefined,
+  });
   console.log(`  任务: ${reqs.task_name}`);
   console.log(`  截止: ${reqs.deadline}`);
   console.log(`  交付物: ${reqs.deliverables.length} 项`);
@@ -212,7 +303,11 @@ async function cmdFull(): Promise<void> {
 
   // Step 2: Plan
   console.log('━ Step 2/6: 生成交付物计划');
-  const plan = buildDeliverablePlan({ task_requirements: reqs });
+  const cfg = resolveConfig(projectPath);
+  const plan = buildDeliverablePlan({
+    task_requirements: reqs,
+    custom_templates: Object.keys(cfg.deliverables).length > 0 ? cfg.deliverables : undefined,
+  });
   console.log(`  周期: ${plan.total_days} 天`);
   console.log(`  阶段: ${plan.phases.length} 个`);
   console.log(`  微任务: ${plan.micro_tasks.length} 个`);
@@ -235,7 +330,24 @@ async function cmdFull(): Promise<void> {
     deadline: reqs.deadline,
   });
   console.log(`  文件: ${cal.ics_file_path}`);
-  console.log(`  事件: ${cal.event_count} 个\n`);
+  console.log(`  事件: ${cal.event_count} 个`);
+
+  // Apple Calendar import with confirmation
+  if (appleCalMode) {
+    console.log(`\n  即将导入 ${cal.event_count} 个事件到 macOS 日历 (日历名: ClawPlanOps)`);
+    const confirmed = await askConfirmation('  确认导入到 macOS 日历？');
+    if (confirmed) {
+      const importResult = importToAppleCalendar(cal.events);
+      if (importResult.success) {
+        console.log(`  ✅ 成功导入 ${importResult.imported_count} 个事件到 "${importResult.calendar_name}" 日历`);
+      } else {
+        console.error(`  ❌ 导入失败: ${importResult.errors.join(', ')}`);
+      }
+    } else {
+      console.log('  已取消导入');
+    }
+  }
+  console.log();
 
   // Step 4: Check progress
   console.log('━ Step 4/6: 检查进度证据');
@@ -250,7 +362,6 @@ async function cmdFull(): Promise<void> {
   console.log();
 
   // Export progress markdown
-  const { exportMarkdownProgress } = require('./report/markdownExporter');
   fs.writeFileSync(
     path.join(outDir, 'progress_report.md'),
     exportMarkdownProgress(progress),
@@ -283,7 +394,6 @@ async function cmdFull(): Promise<void> {
   console.log();
 
   // Export reschedule markdown
-  const { exportMarkdownReschedule } = require('./report/markdownExporter');
   fs.writeFileSync(
     path.join(outDir, 'reschedule_report.md'),
     exportMarkdownReschedule(re),
@@ -314,7 +424,7 @@ async function cmdFull(): Promise<void> {
       cmdPlan();
       break;
     case 'calendar':
-      cmdCalendar();
+      await cmdCalendar();
       break;
     case 'check':
       cmdCheck();
