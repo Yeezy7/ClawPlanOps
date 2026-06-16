@@ -5,5 +5,5 @@ import type { EvidenceRule } from '../types';
  * Also includes Git commit history as evidence.
  * Returns a ProgressReport with percentage, completed/missing items, and risk level.
  */
-export declare function checkProgress(projectPath: string, customRules?: EvidenceRule[]): ProgressReport;
+export declare function checkProgress(projectPath: string, customRules?: EvidenceRule[], excludePatterns?: string[]): ProgressReport;
 //# sourceMappingURL=progressScorer.d.ts.map

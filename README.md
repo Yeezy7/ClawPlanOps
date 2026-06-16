@@ -13,6 +13,16 @@
 - **RFC 5545 标准日历导出** — ICS 文件含 VALARM 提醒（30分钟前 + 高优任务1天前）
 - **零运行时依赖** — ICS 生成器、文件扫描器、HTML 解析器全部自实现
 
+### v0.3.0 新功能
+
+- **周报生成** — 根据本周完成的微任务和 Git 提交自动生成周报
+- **提交前检查** — 比赛提交前自动检查所有材料是否齐全，给出评分
+- **多任务并行** — 同时管理多个比赛/项目的计划，支持切换和状态查看
+- **提醒推送** — 支持系统通知（macOS/Linux/Windows）、邮件、Webhook
+- **Git 提交自动关联** — 自动分析 Git 提交与任务的关联关系
+- **历史进度追踪** — 保存进度快照，支持趋势分析和预计完成时间
+- **跨平台日历** — 支持 macOS Calendar、Linux (gnome-calendar/korganizer)、Windows 默认日历
+
 ## 安装
 
 ```bash
@@ -43,6 +53,17 @@ claw-planops calendar <plan.json> --apple-cal # 导入 macOS 日历
 claw-planops check <项目目录>              # 检查进度证据
 claw-planops report <项目目录> <plan.json> # 生成每日进度报告
 claw-planops reschedule <progress.json> <plan.json> # 动态重排建议
+
+# 新功能 (v0.3.0)
+claw-planops weekly <项目目录> <plan.json>      # 生成周报
+claw-planops presubmit <项目目录> <plan.json>   # 提交前检查
+claw-planops projects list                       # 列出并行项目
+claw-planops projects add <名称> <通知> <路径>   # 添加新项目
+claw-planops projects switch <id>                # 切换活动项目
+claw-planops git-link <项目目录> <plan.json>     # Git 提交关联
+claw-planops trend <项目目录>                    # 查看进度趋势
+claw-planops notify test                         # 测试系统通知
+claw-planops calendar-import <plan.json>         # 跨平台日历导入
 
 # AI 模式（更准确的解析）
 claw-planops parse <通知文件> --ai
@@ -177,6 +198,7 @@ npm run typecheck # 类型检查
 npm test          # 运行全部测试
 npm run test:watch # 监听模式
 npm run build     # 构建 dist 发布产物
+npm run delivery:check # 一键交付健康检查
 ```
 
 ## 项目结构
@@ -209,7 +231,9 @@ claw-planops/
 │   ├── tools/                # 工具注册层
 │   └── utils/
 │       └── validation.ts     # 输入校验
-├── tests/                    # 单元测试 (108 tests)
+├── scripts/
+│   └── delivery-check.js     # 交付健康检查
+├── tests/                    # 单元测试 (116 tests)
 ├── skills/
 │   └── claw-planops/SKILL.md # OpenClaw 技能定义
 ├── examples/

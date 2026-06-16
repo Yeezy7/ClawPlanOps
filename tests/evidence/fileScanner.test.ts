@@ -10,9 +10,11 @@ beforeAll(() => {
   // Create a test project structure
   fs.mkdirSync(testDir, { recursive: true });
   fs.mkdirSync(path.join(testDir, 'src'), { recursive: true });
+  fs.mkdirSync(path.join(testDir, 'dist'), { recursive: true });
   fs.writeFileSync(path.join(testDir, 'package.json'), '{"name":"test"}');
   fs.writeFileSync(path.join(testDir, 'README.md'), '# Test Project');
   fs.writeFileSync(path.join(testDir, 'src', 'index.ts'), 'export default {}');
+  fs.writeFileSync(path.join(testDir, 'dist', 'generated.ts'), 'export default {}');
   fs.mkdirSync(path.join(testDir, 'empty-dir'), { recursive: true });
 });
 
@@ -144,5 +146,49 @@ describe('scanEvidence', () => {
     const results = scanEvidence(testDir, rules);
     // README.md matches even though *.docx and *.pdf don't
     expect(results[0].passed).toBe(true);
+  });
+
+  it('should exclude configured paths from wildcard matches', () => {
+    const rules: EvidenceRule[] = [
+      {
+        id: 'T-009',
+        description: 'generated ts files',
+        file_patterns: ['**/*.ts'],
+        check_type: 'file_exists',
+        weight: 10,
+        deliverable_id: 'DEL-01',
+      },
+    ];
+
+    const results = scanEvidence(testDir, rules, {
+      exclude_patterns: ['src', 'node_modules'],
+    });
+
+    expect(results[0].passed).toBe(true);
+    expect(results[0].detail).toContain('dist/generated.ts');
+    expect(results[0].detail).not.toContain('src/index.ts');
+  });
+
+  it('should ignore recent modifications in excluded directories', () => {
+    const isolatedDir = path.join(testDir, 'isolated-recent');
+    fs.mkdirSync(path.join(isolatedDir, 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(isolatedDir, 'dist', 'bundle.js'), 'recent');
+
+    const rules: EvidenceRule[] = [
+      {
+        id: 'T-010',
+        description: 'recently modified',
+        file_patterns: ['**/*'],
+        check_type: 'file_modified_recently',
+        weight: 5,
+        deliverable_id: 'DEL-01',
+      },
+    ];
+
+    const results = scanEvidence(isolatedDir, rules, {
+      exclude_patterns: ['dist'],
+    });
+
+    expect(results[0].passed).toBe(false);
   });
 });

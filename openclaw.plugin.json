@@ -1,8 +1,8 @@
 {
   "id": "claw-planops",
   "name": "ClawPlanOps",
-  "version": "0.2.0",
-  "description": "基于交付物证据的项目执行规划插件。输入任务通知 → 自动解析要求 → 生成计划 → 导出日历 → 检查真实进度 → 动态重排。",
+  "version": "0.4.0",
+  "description": "基于交付物证据的项目执行规划插件。输入任务通知 → 自动解析要求 → 生成计划 → 导出日历 → 检查真实进度 → 动态重排。支持周报生成、提交前检查、多任务并行、提醒推送、Git 关联、历史追踪、跨平台日历。",
   "enabledByDefault": true,
   "activation": {
     "onStartup": false
@@ -17,28 +17,30 @@
       "clawplanops_generate_calendar_schedule",
       "clawplanops_check_progress_evidence",
       "clawplanops_generate_daily_progress_report",
-      "clawplanops_reschedule_plan"
+      "clawplanops_reschedule_plan",
+      "clawplanops_generate_weekly_report",
+      "clawplanops_pre_submission_check",
+      "clawplanops_multi_project_status",
+      "clawplanops_git_task_link",
+      "clawplanops_progress_trend",
+      "clawplanops_send_notification",
+      "clawplanops_cross_platform_calendar"
     ]
   },
   "toolMetadata": {
-    "clawplanops_parse_task_requirements": {
-      "configSignals": []
-    },
-    "clawplanops_build_deliverable_plan": {
-      "configSignals": []
-    },
-    "clawplanops_generate_calendar_schedule": {
-      "configSignals": []
-    },
-    "clawplanops_check_progress_evidence": {
-      "configSignals": []
-    },
-    "clawplanops_generate_daily_progress_report": {
-      "configSignals": []
-    },
-    "clawplanops_reschedule_plan": {
-      "configSignals": []
-    }
+    "clawplanops_parse_task_requirements": { "configSignals": [] },
+    "clawplanops_build_deliverable_plan": { "configSignals": [] },
+    "clawplanops_generate_calendar_schedule": { "configSignals": [] },
+    "clawplanops_check_progress_evidence": { "configSignals": [] },
+    "clawplanops_generate_daily_progress_report": { "configSignals": [] },
+    "clawplanops_reschedule_plan": { "configSignals": [] },
+    "clawplanops_generate_weekly_report": { "configSignals": [] },
+    "clawplanops_pre_submission_check": { "configSignals": [] },
+    "clawplanops_multi_project_status": { "configSignals": [] },
+    "clawplanops_git_task_link": { "configSignals": [] },
+    "clawplanops_progress_trend": { "configSignals": [] },
+    "clawplanops_send_notification": { "configSignals": [] },
+    "clawplanops_cross_platform_calendar": { "configSignals": [] }
   },
   "commandAliases": [
     {

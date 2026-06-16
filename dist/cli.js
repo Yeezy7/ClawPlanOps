@@ -58,6 +58,13 @@ const reschedulePlan_1 = require("./tools/reschedulePlan");
 const markdownExporter_1 = require("./report/markdownExporter");
 const projectConfig_1 = require("./config/projectConfig");
 const appleCalendar_1 = require("./calendar/appleCalendar");
+const weeklyReport_1 = require("./report/weeklyReport");
+const preSubmissionCheck_1 = require("./report/preSubmissionCheck");
+const multiProject_1 = require("./config/multiProject");
+const pushNotification_1 = require("./notification/pushNotification");
+const gitTaskLink_1 = require("./evidence/gitTaskLink");
+const progressHistory_1 = require("./evidence/progressHistory");
+const crossPlatformCalendar_1 = require("./calendar/crossPlatformCalendar");
 const cmd = process.argv[2];
 const rawArgs = process.argv.slice(3);
 // Parse flags
@@ -92,7 +99,21 @@ ClawPlanOps – 基于交付物证据的项目执行规划工具
   report <project-path> <plan.json>  生成每日进度报告
   reschedule <progress.json> <plan.json>  生成动态重排建议
   full <notice-file> <project-path> [--ai [url]] [--apple-cal]  完整 6 步流程
-  help                        显示此帮助信息
+
+新功能:
+  weekly <project-path> <plan.json>  生成周报
+  presubmit <project-path> <plan.json>  提交前检查
+  projects list                   列出所有并行项目
+  projects add <name> <notice> <path>  添加新项目
+  projects switch <id>            切换活动项目
+  projects remove <id>            删除项目
+  projects status                 查看所有项目状态
+  git-link <project-path> <plan.json>  Git 提交与任务关联
+  trend <project-path>            查看进度趋势
+  notify test                     测试系统通知
+  notify send <title> <message>   发送通知
+  calendar-import <plan.json>     跨平台日历导入（自动检测系统）
+  help                            显示此帮助信息
 
 AI 模式:
   使用 --ai 标志启用 AI 解析，可处理任意格式的通知文本。
@@ -103,6 +124,11 @@ AI 模式:
   claw-planops parse examples/zzu_four_creation_notice.txt
   claw-planops parse notice.txt --ai
   claw-planops full notice.txt . --ai http://localhost:11434/v1
+  claw-planops weekly . plan.json
+  claw-planops presubmit . plan.json
+  claw-planops projects list
+  claw-planops git-link . plan.json
+  claw-planops trend .
 `);
 }
 function readJSON(filePath) {
@@ -301,6 +327,210 @@ function cmdReschedule() {
     fs.writeFileSync(mdPath, md, 'utf-8');
     console.error(`\nMarkdown 重排报告已导出: ${mdPath}`);
 }
+function cmdWeekly() {
+    const projectPath = args[0] || '.';
+    const planPath = args[1];
+    if (!planPath) {
+        console.error('错误: 请提供计划 JSON 文件路径');
+        process.exit(1);
+    }
+    const plan = readJSON(planPath);
+    const progress = (0, checkProgressEvidence_1.checkProgressEvidence)({ project_path: projectPath });
+    const report = (0, weeklyReport_1.generateWeeklyReport)({
+        project_path: projectPath,
+        micro_tasks: plan.micro_tasks,
+        progress_report: progress,
+    });
+    printJSON(report);
+    const md = (0, weeklyReport_1.exportWeeklyReportMarkdown)(report);
+    const mdPath = path.resolve('./output/weekly_report.md');
+    const dir = path.dirname(mdPath);
+    if (!fs.existsSync(dir))
+        fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(mdPath, md, 'utf-8');
+    console.error(`\n周报已导出: ${mdPath}`);
+}
+function cmdPreSubmit() {
+    const projectPath = args[0] || '.';
+    const planPath = args[1];
+    if (!planPath) {
+        console.error('错误: 请提供计划 JSON 文件路径');
+        process.exit(1);
+    }
+    const plan = readJSON(planPath);
+    const result = (0, preSubmissionCheck_1.runPreSubmissionCheck)({ project_path: projectPath, plan });
+    printJSON(result);
+    const md = (0, preSubmissionCheck_1.exportPreSubmissionMarkdown)(result);
+    const mdPath = path.resolve('./output/pre_submission_check.md');
+    const dir = path.dirname(mdPath);
+    if (!fs.existsSync(dir))
+        fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(mdPath, md, 'utf-8');
+    console.error(`\n提交前检查报告已导出: ${mdPath}`);
+}
+function cmdProjects() {
+    const subCmd = args[0];
+    const projectPath = args[1] || '.';
+    switch (subCmd) {
+        case 'list': {
+            const projects = (0, multiProject_1.listProjects)(projectPath);
+            if (projects.length === 0) {
+                console.log('暂无并行项目');
+                return;
+            }
+            console.log(`共 ${projects.length} 个项目:\n`);
+            for (const p of projects) {
+                console.log(`  ${p.id}  ${p.name}  进度: ${p.progress?.progress_percent || 0}%  截止: ${p.plan.deadline}`);
+            }
+            break;
+        }
+        case 'add': {
+            const name = args[2];
+            const noticeFile = args[3];
+            const targetPath = args[4] || '.';
+            if (!name || !noticeFile) {
+                console.error('错误: 请提供项目名称和通知文件路径');
+                process.exit(1);
+            }
+            const notice = readText(noticeFile);
+            const entry = (0, multiProject_1.addProject)(projectPath, name, notice, targetPath);
+            console.log(`已添加项目: ${entry.name} (ID: ${entry.id})`);
+            break;
+        }
+        case 'switch': {
+            const id = args[2];
+            if (!id) {
+                console.error('错误: 请提供项目 ID');
+                process.exit(1);
+            }
+            const entry = (0, multiProject_1.switchProject)(projectPath, id);
+            if (entry) {
+                console.log(`已切换到: ${entry.name}`);
+            }
+            else {
+                console.error('未找到项目');
+            }
+            break;
+        }
+        case 'remove': {
+            const id = args[2];
+            if (!id) {
+                console.error('错误: 请提供项目 ID');
+                process.exit(1);
+            }
+            if ((0, multiProject_1.removeProject)(projectPath, id)) {
+                console.log('已删除');
+            }
+            else {
+                console.error('未找到项目');
+            }
+            break;
+        }
+        case 'status': {
+            const status = (0, multiProject_1.getOverallStatus)(projectPath);
+            printJSON(status);
+            break;
+        }
+        default:
+            console.log('用法: projects <list|add|switch|remove|status> [args...]');
+    }
+}
+function cmdGitLink() {
+    const projectPath = args[0] || '.';
+    const planPath = args[1];
+    if (!planPath) {
+        console.error('错误: 请提供计划 JSON 文件路径');
+        process.exit(1);
+    }
+    const plan = readJSON(planPath);
+    const commits = (0, gitTaskLink_1.getRecentCommits)(projectPath, 30);
+    const report = (0, gitTaskLink_1.linkCommitsToTasks)(commits, plan.micro_tasks);
+    report.project_path = projectPath;
+    printJSON(report);
+    const md = (0, gitTaskLink_1.generateGitTaskMarkdown)(report);
+    const mdPath = path.resolve('./output/git_task_link.md');
+    const dir = path.dirname(mdPath);
+    if (!fs.existsSync(dir))
+        fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(mdPath, md, 'utf-8');
+    console.error(`\nGit 任务关联报告已导出: ${mdPath}`);
+}
+function cmdTrend() {
+    const projectPath = args[0] || '.';
+    const trend = (0, progressHistory_1.analyzeProgressTrend)(projectPath);
+    const history = (0, progressHistory_1.loadProgressHistory)(projectPath);
+    printJSON({ trend, history_count: history.snapshots.length });
+    const md = (0, progressHistory_1.exportProgressTrendMarkdown)(trend, history);
+    const mdPath = path.resolve('./output/progress_trend.md');
+    const dir = path.dirname(mdPath);
+    if (!fs.existsSync(dir))
+        fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(mdPath, md, 'utf-8');
+    console.error(`\n进度趋势报告已导出: ${mdPath}`);
+}
+function cmdNotify() {
+    const subCmd = args[0];
+    switch (subCmd) {
+        case 'test': {
+            const result = (0, pushNotification_1.sendEventReminder)({
+                uid: 'test-1',
+                summary: '测试通知',
+                description: '这是一条测试通知',
+                start: '',
+                end: '',
+                completion_criteria: '测试',
+                deliverable_id: 'TEST',
+                risk_note: '',
+            });
+            if (result.success) {
+                console.log('✅ 通知发送成功');
+            }
+            else {
+                console.error(`❌ 通知发送失败: ${result.errors.join(', ')}`);
+            }
+            break;
+        }
+        case 'send': {
+            const title = args[1];
+            const message = args[2];
+            if (!title || !message) {
+                console.error('错误: 请提供标题和消息');
+                process.exit(1);
+            }
+            const { sendSystemNotification } = require('./notification/pushNotification');
+            const result = sendSystemNotification(title, message);
+            if (result.success) {
+                console.log('✅ 通知发送成功');
+            }
+            else {
+                console.error(`❌ 通知发送失败: ${result.errors.join(', ')}`);
+            }
+            break;
+        }
+        default:
+            console.log('用法: notify <test|send> [title] [message]');
+    }
+}
+function cmdCalendarImport() {
+    const planPath = args[0];
+    if (!planPath) {
+        console.error('错误: 请提供计划 JSON 文件路径');
+        process.exit(1);
+    }
+    const plan = readJSON(planPath);
+    const cal = (0, generateCalendarSchedule_1.generateCalendarSchedule)({
+        micro_tasks: plan.micro_tasks,
+        start_date: plan.start_date,
+        deadline: plan.deadline,
+    });
+    const result = (0, crossPlatformCalendar_1.importToSystemCalendar)(cal.events);
+    if (result.success) {
+        console.log(`✅ 成功导入 ${result.imported_count} 个事件 (${result.platform} / ${result.method})`);
+    }
+    else {
+        console.error(`❌ 导入失败: ${result.errors.join(', ')}`);
+    }
+}
 async function cmdFull() {
     const noticeFile = args[0];
     const projectPath = args[1] || '.';
@@ -438,6 +668,27 @@ async function cmdFull() {
             break;
         case 'full':
             await cmdFull();
+            break;
+        case 'weekly':
+            cmdWeekly();
+            break;
+        case 'presubmit':
+            cmdPreSubmit();
+            break;
+        case 'projects':
+            cmdProjects();
+            break;
+        case 'git-link':
+            cmdGitLink();
+            break;
+        case 'trend':
+            cmdTrend();
+            break;
+        case 'notify':
+            cmdNotify();
+            break;
+        case 'calendar-import':
+            cmdCalendarImport();
             break;
         case 'help':
         case '--help':

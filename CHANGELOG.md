@@ -14,7 +14,7 @@
 - 项目配置文件支持（`.planopsrc.json`）
 - 自定义交付物模板（`custom_templates` 参数）
 - 输入校验工具
-- 单元测试: 108 个测试用例覆盖所有核心模块（vitest）
+- 单元测试: 116 个测试用例覆盖所有核心模块（vitest）
 - 发布入口改为 `dist/index.js`，并提供类型声明 `dist/index.d.ts`
 - MIT LICENSE
 - .npmignore 排除开发文件
@@ -25,3 +25,6 @@
 - URL 抓取测试改为 HTTP mock，避免受限环境下本地端口监听失败。
 - 重排测试改为相对日期，避免固定历史日期导致测试随时间失效。
 - 日历排期不再因截止时间不足而静默丢弃任务，会保留所有事件并标记超期风险。
+- 证据扫描会读取并应用 `exclude_patterns`，避免将 `dist/` 等构建输出计入最近修改证据。
+- Apple Calendar 导入改为直接调用 `osascript -e` 参数并集中转义脚本文本，降低 shell 拼接风险。
+- 新增 `npm run delivery:check`，一键执行类型检查、测试、构建、工具导出校验和发布包 dry-run。

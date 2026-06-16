@@ -9,9 +9,11 @@ const gitEvidence_1 = require("./gitEvidence");
  * Also includes Git commit history as evidence.
  * Returns a ProgressReport with percentage, completed/missing items, and risk level.
  */
-function checkProgress(projectPath, customRules = []) {
+function checkProgress(projectPath, customRules = [], excludePatterns = []) {
     const rules = (0, evidenceRules_1.mergeRules)(customRules);
-    const fileResults = (0, fileScanner_1.scanEvidence)(projectPath, rules);
+    const fileResults = (0, fileScanner_1.scanEvidence)(projectPath, rules, {
+        exclude_patterns: excludePatterns,
+    });
     // Also check Git evidence
     const gitResults = (0, gitEvidence_1.checkGitEvidence)(projectPath);
     const activeGitResults = gitResults.filter((r) => r.weight > 0);

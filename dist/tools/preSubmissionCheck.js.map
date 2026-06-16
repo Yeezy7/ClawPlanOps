@@ -1,0 +1,1 @@
+{"version":3,"file":"preSubmissionCheck.js","sourceRoot":"","sources":["../../src/tools/preSubmissionCheck.ts"],"names":[],"mappings":";;;AAQA,wDAKC;AAbD,qEAAkG;AAezF,4GAfuB,gDAA2B,OAevB;AAPpC,SAAgB,sBAAsB,CAAC,MAAuB;IAC5D,OAAO,IAAA,0CAAqB,EAAC;QAC3B,YAAY,EAAE,MAAM,CAAC,YAAY;QACjC,IAAI,EAAE,MAAM,CAAC,IAAI;KAClB,CAAC,CAAC;AACL,CAAC"}

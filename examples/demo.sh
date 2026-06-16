@@ -1,6 +1,7 @@
 #!/bin/bash
 # ClawPlanOps 演示脚本
 # 展示完整的 6 步流程
+# 用法: bash examples/demo.sh (需在项目根目录运行)
 
 set -e
 
@@ -10,7 +11,27 @@ echo "║   基于交付物证据的项目执行规划插件        ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-BIN="node dist/cli.js"
+# 确保在项目根目录运行
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
+
+# 自动检测 node 路径（支持 nvm 等版本管理器）
+if [ -z "$(command -v node 2>/dev/null)" ]; then
+  for nvmSh in "$HOME/.nvm/nvm.sh" "/opt/homebrew/opt/nvm/nvm.sh" "/usr/local/opt/nvm/nvm.sh"; do
+    if [ -s "$nvmSh" ]; then
+      . "$nvmSh"
+      break
+    fi
+  done
+fi
+
+if ! command -v node &>/dev/null; then
+  echo "错误: 未找到 node 命令，请先安装 Node.js"
+  exit 1
+fi
+
+BIN="$(command -v node) dist/cli.js"
 NOTICE="examples/zzu_four_creation_notice.txt"
 PROJECT="."
 

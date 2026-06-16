@@ -11,10 +11,13 @@ import type { EvidenceRule } from '../types';
  */
 export function checkProgress(
   projectPath: string,
-  customRules: EvidenceRule[] = []
+  customRules: EvidenceRule[] = [],
+  excludePatterns: string[] = []
 ): ProgressReport {
   const rules = mergeRules(customRules);
-  const fileResults = scanEvidence(projectPath, rules);
+  const fileResults = scanEvidence(projectPath, rules, {
+    exclude_patterns: excludePatterns,
+  });
 
   // Also check Git evidence
   const gitResults = checkGitEvidence(projectPath);

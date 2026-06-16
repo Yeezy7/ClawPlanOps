@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import type { CalendarEvent } from '../types';
 
 const CALENDAR_NAME = 'ClawPlanOps';
@@ -62,23 +62,34 @@ export function importToAppleCalendar(
 // ---- AppleScript helpers ------------------------------------
 
 function ensureCalendar(): void {
-  const script = `
+  runAppleScript(buildEnsureCalendarScript());
+}
+
+export function buildEnsureCalendarScript(calendarName: string = CALENDAR_NAME): string {
+  const safeCalendarName = escapeAppleScriptString(calendarName);
+  return `
 tell application "Calendar"
-  if not (exists calendar "${CALENDAR_NAME}") then
-    make new calendar with properties {name:"${CALENDAR_NAME}"}
+  if not (exists calendar "${safeCalendarName}") then
+    make new calendar with properties {name:"${safeCalendarName}"}
   end if
 end tell`;
-  runAppleScript(script);
 }
 
 function addEvent(event: CalendarEvent): void {
-  // Parse ICS date format: 20260601T200000 → Date string for AppleScript
-  const startDate = icsDateToAppleScript(event.start);
-  const endDate = icsDateToAppleScript(event.end);
+  runAppleScript(buildAddEventScript(event));
+}
 
-  // Escape quotes in strings for AppleScript
-  const summary = escapeAppleScript(event.summary);
-  const description = escapeAppleScript(event.description.replace(/\\n/g, '\n'));
+export function buildAddEventScript(
+  event: CalendarEvent,
+  calendarName: string = CALENDAR_NAME
+): string {
+  // Parse ICS date format: 20260601T200000 → Date string for AppleScript
+  const startDate = icsDateToAppleScriptDate(event.start);
+  const endDate = icsDateToAppleScriptDate(event.end);
+
+  const safeCalendarName = escapeAppleScriptString(calendarName);
+  const summary = escapeAppleScriptString(event.summary);
+  const description = escapeAppleScriptString(event.description.replace(/\\n/g, ' | '));
 
   // Build alarm clauses
   const alarmClauses: string[] = [];
@@ -89,21 +100,20 @@ function addEvent(event: CalendarEvent): void {
     alarmClauses.push(`make new sound alarm at event end date with properties {trigger:-1440}`);
   }
 
-  const script = `
+  return `
 tell application "Calendar"
-  tell calendar "${CALENDAR_NAME}"
+  tell calendar "${safeCalendarName}"
     set newEvent to make new event with properties {summary:"${summary}", start date:${startDate}, end date:${endDate}, description:"${description}"}
     tell newEvent
       ${alarmClauses.join('\n      ')}
     end tell
   end tell
 end tell`;
-  runAppleScript(script);
 }
 
 function runAppleScript(script: string): string {
   try {
-    return execSync(`osascript -e '${script.replace(/'/g, "'\\''")}'`, {
+    return execFileSync('osascript', ['-e', script], {
       encoding: 'utf-8',
       timeout: 10000,
     }).trim();
@@ -112,7 +122,10 @@ function runAppleScript(script: string): string {
   }
 }
 
-function icsDateToAppleScript(icsDate: string): string {
+export function icsDateToAppleScriptDate(icsDate: string): string {
+  if (!/^\d{8}T\d{6}$/.test(icsDate)) {
+    throw new Error(`无效 ICS 日期: ${icsDate}`);
+  }
   // 20260601T200000 → "date \"2026-06-01 20:00:00\""
   const y = icsDate.slice(0, 4);
   const m = icsDate.slice(4, 6);
@@ -123,6 +136,9 @@ function icsDateToAppleScript(icsDate: string): string {
   return `date "${y}-${m}-${d} ${hh}:${mm}:${ss}"`;
 }
 
-function escapeAppleScript(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+export function escapeAppleScriptString(s: string): string {
+  return s
+    .replace(/\r?\n/g, ' | ')
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"');
 }

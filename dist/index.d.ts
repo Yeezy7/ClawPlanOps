@@ -5,34 +5,55 @@ export { importToAppleCalendar } from './calendar/appleCalendar';
 export { checkProgressEvidence } from './tools/checkProgressEvidence';
 export { generateDailyProgressReport } from './tools/generateDailyProgressReport';
 export { reschedulePlan } from './tools/reschedulePlan';
-export { parseTaskRequirements as clawplanops_parse_task_requirements } from './tools/parseTaskRequirements';
-export { buildDeliverablePlan as clawplanops_build_deliverable_plan } from './tools/buildDeliverablePlan';
-export { generateCalendarSchedule as clawplanops_generate_calendar_schedule } from './tools/generateCalendarSchedule';
-export { checkProgressEvidence as clawplanops_check_progress_evidence } from './tools/checkProgressEvidence';
-export { generateDailyProgressReport as clawplanops_generate_daily_progress_report } from './tools/generateDailyProgressReport';
-export { reschedulePlan as clawplanops_reschedule_plan } from './tools/reschedulePlan';
 export { fetchURLContent } from './planner/urlFetcher';
 export { aiParseTaskRequirements } from './planner/aiParser';
 export { checkGitEvidence } from './evidence/gitEvidence';
 export { exportMarkdownPlan, exportMarkdownProgress, exportMarkdownReschedule } from './report/markdownExporter';
 export { loadProjectConfig, resolveConfig, generateConfigTemplate } from './config/projectConfig';
-export type { TaskRequirements, DeliverablePlan, CalendarResult, ProgressReport, DailyReport, RescheduleResult, Phase, MicroTask, DeliverableItem, EvidenceRule, EvidenceResult, CalendarEvent, RiskLevel, } from './types';
+export { generateWeeklyReport, exportWeeklyReportMarkdown } from './report/weeklyReport';
+export { runPreSubmissionCheck, exportPreSubmissionMarkdown } from './report/preSubmissionCheck';
+export { loadMultiProjectState, addProject, switchProject, getActiveProject, listProjects, removeProject, getOverallStatus } from './config/multiProject';
+export { sendSystemNotification, sendEmailNotification, sendWebhookNotification, sendEventReminder, sendBatchReminders } from './notification/pushNotification';
+export { getRecentCommits, linkCommitsToTasks, generateGitTaskMarkdown } from './evidence/gitTaskLink';
+export { saveProgressSnapshot, loadProgressHistory, analyzeProgressTrend, exportProgressTrendMarkdown } from './evidence/progressHistory';
+export { importToSystemCalendar } from './calendar/crossPlatformCalendar';
+export type { TaskRequirements, DeliverablePlan, CalendarResult, ProgressReport, DailyReport, RescheduleResult, Phase, MicroTask, DeliverableItem, EvidenceRule, EvidenceResult, CalendarEvent, RiskLevel, WeeklyReport, CompletedTask, GitCommit, PreSubmissionCheck, SubmissionCheckItem, ProjectEntry, MultiProjectState, ProgressSnapshot, ProgressTrend, TaskGitLink, GitTaskReport, NotificationConfig, NotificationResult, CrossPlatformResult, } from './types';
 export type { GitEvidenceRule } from './evidence/gitEvidence';
 export type { ProjectConfig } from './config/projectConfig';
 export type { AppleCalendarResult } from './calendar/appleCalendar';
-/**
- * Plugin lifecycle: called when OpenClaw loads this plugin.
- * Provides the OpenClaw API for registering tools, hooks, etc.
- */
-export declare function register(api: Record<string, unknown>): void;
-/**
- * Default export for OpenClaw plugin entry.
- */
-declare const pluginEntry: {
+import { parseTaskRequirements as parseImpl } from './tools/parseTaskRequirements';
+import { buildDeliverablePlan as buildImpl } from './tools/buildDeliverablePlan';
+import { generateCalendarSchedule as calImpl } from './tools/generateCalendarSchedule';
+import { checkProgressEvidence as checkImpl } from './tools/checkProgressEvidence';
+import { generateDailyProgressReport as reportImpl } from './tools/generateDailyProgressReport';
+import { reschedulePlan as rescheduleImpl } from './tools/reschedulePlan';
+import { generateWeeklyReportTool as weeklyImpl } from './tools/generateWeeklyReport';
+import { preSubmissionCheckTool as presubmitImpl } from './tools/preSubmissionCheck';
+import { multiProjectStatusTool as multiProjImpl } from './tools/multiProjectStatus';
+import { gitTaskLinkTool as gitLinkImpl } from './tools/gitTaskLink';
+import { progressTrendTool as trendImpl } from './tools/progressTrend';
+import { sendNotificationTool as notifyImpl } from './tools/sendNotification';
+import { crossPlatformCalendarTool as calImportImpl } from './tools/crossPlatformCalendar';
+export { parseImpl as clawplanops_parse_task_requirements };
+export { buildImpl as clawplanops_build_deliverable_plan };
+export { calImpl as clawplanops_generate_calendar_schedule };
+export { checkImpl as clawplanops_check_progress_evidence };
+export { reportImpl as clawplanops_generate_daily_progress_report };
+export { rescheduleImpl as clawplanops_reschedule_plan };
+export { weeklyImpl as clawplanops_generate_weekly_report };
+export { presubmitImpl as clawplanops_pre_submission_check };
+export { multiProjImpl as clawplanops_multi_project_status };
+export { gitLinkImpl as clawplanops_git_task_link };
+export { trendImpl as clawplanops_progress_trend };
+export { notifyImpl as clawplanops_send_notification };
+export { calImportImpl as clawplanops_cross_platform_calendar };
+declare const _default: {
     id: string;
     name: string;
     description: string;
-    register: typeof register;
+    version: string;
+    register(api: any): void;
 };
-export default pluginEntry;
+export default _default;
+export declare function register(api: Record<string, unknown>): void;
 //# sourceMappingURL=index.d.ts.map

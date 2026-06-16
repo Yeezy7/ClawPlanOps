@@ -39,9 +39,10 @@ const path = __importStar(require("path"));
 /**
  * Scan a project directory against evidence rules.
  */
-function scanEvidence(projectPath, rules) {
+function scanEvidence(projectPath, rules, options = {}) {
     const results = [];
     const absolutePath = path.resolve(projectPath);
+    const excludePatterns = normalizeExcludePatterns(options.exclude_patterns ?? []);
     if (!fs.existsSync(absolutePath)) {
         // All rules fail if directory doesn't exist
         return rules.map((rule) => ({
@@ -53,21 +54,21 @@ function scanEvidence(projectPath, rules) {
         }));
     }
     for (const rule of rules) {
-        results.push(checkRule(absolutePath, rule));
+        results.push(checkRule(absolutePath, rule, excludePatterns));
     }
     return results;
 }
 // ---- rule checkers -------------------------------------------
-function checkRule(projectPath, rule) {
+function checkRule(projectPath, rule, excludePatterns) {
     switch (rule.check_type) {
         case 'file_exists':
-            return checkFileExists(projectPath, rule);
+            return checkFileExists(projectPath, rule, excludePatterns);
         case 'file_not_empty':
-            return checkFileNotEmpty(projectPath, rule);
+            return checkFileNotEmpty(projectPath, rule, excludePatterns);
         case 'directory_exists':
-            return checkDirectoryExists(projectPath, rule);
+            return checkDirectoryExists(projectPath, rule, excludePatterns);
         case 'file_modified_recently':
-            return checkRecentModification(projectPath, rule);
+            return checkRecentModification(projectPath, rule, excludePatterns);
         default:
             return {
                 rule_id: rule.id,
@@ -78,9 +79,9 @@ function checkRule(projectPath, rule) {
             };
     }
 }
-function checkFileExists(projectPath, rule) {
+function checkFileExists(projectPath, rule, excludePatterns) {
     for (const pattern of rule.file_patterns) {
-        const matches = findMatches(projectPath, pattern);
+        const matches = findMatches(projectPath, pattern, excludePatterns);
         if (matches.length > 0) {
             return {
                 rule_id: rule.id,
@@ -99,9 +100,9 @@ function checkFileExists(projectPath, rule) {
         weight: rule.weight,
     };
 }
-function checkFileNotEmpty(projectPath, rule) {
+function checkFileNotEmpty(projectPath, rule, excludePatterns) {
     for (const pattern of rule.file_patterns) {
-        const matches = findMatches(projectPath, pattern);
+        const matches = findMatches(projectPath, pattern, excludePatterns);
         for (const match of matches) {
             const fullPath = path.join(projectPath, match);
             try {
@@ -129,12 +130,14 @@ function checkFileNotEmpty(projectPath, rule) {
         weight: rule.weight,
     };
 }
-function checkDirectoryExists(projectPath, rule) {
+function checkDirectoryExists(projectPath, rule, excludePatterns) {
     for (const pattern of rule.file_patterns) {
         const clean = pattern.replace(/\/$/, '');
         const dirPath = path.join(projectPath, clean);
         // Try exact match first
-        if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
+        if (!isExcluded(clean, excludePatterns) &&
+            fs.existsSync(dirPath) &&
+            fs.statSync(dirPath).isDirectory()) {
             return {
                 rule_id: rule.id,
                 description: rule.description,
@@ -144,7 +147,7 @@ function checkDirectoryExists(projectPath, rule) {
             };
         }
         // Try glob for directory
-        const matches = findMatches(projectPath, pattern);
+        const matches = findMatches(projectPath, pattern, excludePatterns);
         for (const match of matches) {
             const full = path.join(projectPath, match);
             try {
@@ -171,7 +174,7 @@ function checkDirectoryExists(projectPath, rule) {
         weight: rule.weight,
     };
 }
-function checkRecentModification(projectPath, rule) {
+function checkRecentModification(projectPath, rule, excludePatterns) {
     const oneDayMs = 24 * 60 * 60 * 1000;
     const cutoff = Date.now() - oneDayMs;
     const recentFiles = [];
@@ -179,7 +182,7 @@ function checkRecentModification(projectPath, rule) {
         if (stat.mtimeMs > cutoff) {
             recentFiles.push(path.relative(projectPath, filePath));
         }
-    });
+    }, 5, projectPath, excludePatterns);
     if (recentFiles.length > 0) {
         return {
             rule_id: rule.id,
@@ -198,13 +201,52 @@ function checkRecentModification(projectPath, rule) {
     };
 }
 // ---- file system helpers -------------------------------------
-function findMatches(dir, pattern) {
+function findMatches(dir, pattern, excludePatterns = [], rootDir = dir) {
     const results = [];
+    const relativePattern = path.relative(rootDir, path.join(dir, pattern));
+    if (isExcluded(relativePattern, excludePatterns))
+        return results;
+    // Handle prefix/suffix wildcards like 申报表*, *PPT*, *视频*
+    if (pattern.startsWith('*') && !pattern.startsWith('**')) {
+        const suffix = pattern.slice(1); // e.g. ".mp4" or "PPT*"
+        // Try as extension first
+        if (suffix.startsWith('.')) {
+            const ext = suffix;
+            walkDir(dir, (filePath) => {
+                if (filePath.endsWith(ext)) {
+                    results.push(path.relative(dir, filePath));
+                }
+            }, 5, rootDir, excludePatterns);
+            return results;
+        }
+        // Try as contains-match: search all files for name containing the pattern parts
+        const keyword = pattern.replace(/^\*/, '').replace(/\*$/, '');
+        walkDir(dir, (filePath) => {
+            const base = path.basename(filePath, path.extname(filePath));
+            const fullPath = path.relative(dir, filePath);
+            if (base.includes(keyword) || fullPath.includes(keyword)) {
+                results.push(fullPath);
+            }
+        }, 5, rootDir, excludePatterns);
+        return results;
+    }
+    if (pattern.endsWith('*') && !pattern.startsWith('**')) {
+        const keyword = pattern.replace(/\*$/, '');
+        walkDir(dir, (filePath) => {
+            const base = path.basename(filePath, path.extname(filePath));
+            const fullPath = path.relative(dir, filePath);
+            if (base.includes(keyword) || fullPath.includes(keyword)) {
+                results.push(fullPath);
+            }
+        }, 5, rootDir, excludePatterns);
+        return results;
+    }
     // If pattern has no wildcard, check exact path
     if (!pattern.includes('*')) {
         const exactPath = path.join(dir, pattern);
-        if (fs.existsSync(exactPath)) {
-            return [pattern];
+        const relExact = path.relative(rootDir, exactPath);
+        if (!isExcluded(relExact, excludePatterns) && fs.existsSync(exactPath)) {
+            return [path.relative(dir, exactPath)];
         }
         // Also try fuzzy match for Chinese filenames
         const parent = path.dirname(pattern);
@@ -213,6 +255,9 @@ function findMatches(dir, pattern) {
         if (fs.existsSync(searchDir) && fs.statSync(searchDir).isDirectory()) {
             const entries = fs.readdirSync(searchDir);
             for (const entry of entries) {
+                const relEntry = path.relative(rootDir, path.join(searchDir, entry));
+                if (isExcluded(relEntry, excludePatterns))
+                    continue;
                 if (entry.includes(base) || base.includes(entry)) {
                     results.push(parent === '.' ? entry : path.join(parent, entry));
                 }
@@ -224,7 +269,16 @@ function findMatches(dir, pattern) {
     if (pattern === '**/*') {
         walkDir(dir, (filePath) => {
             results.push(path.relative(dir, filePath));
-        });
+        }, 5, rootDir, excludePatterns);
+        return results;
+    }
+    if (pattern.startsWith('**/*.')) {
+        const ext = pattern.slice(4); // .ext
+        walkDir(dir, (filePath) => {
+            if (filePath.endsWith(ext)) {
+                results.push(path.relative(dir, filePath));
+            }
+        }, 5, rootDir, excludePatterns);
         return results;
     }
     if (pattern.startsWith('*.')) {
@@ -233,7 +287,7 @@ function findMatches(dir, pattern) {
             if (filePath.endsWith(ext)) {
                 results.push(path.relative(dir, filePath));
             }
-        });
+        }, 5, rootDir, excludePatterns);
         return results;
     }
     // directory/**/*.ts pattern
@@ -242,13 +296,16 @@ function findMatches(dir, pattern) {
         const subDir = pattern.slice(0, slashIdx);
         const subPattern = pattern.slice(slashIdx + 1);
         const subPath = path.join(dir, subDir);
-        if (fs.existsSync(subPath) && fs.statSync(subPath).isDirectory()) {
-            return findMatches(subPath, subPattern).map((m) => path.join(subDir, m));
+        const relSubPath = path.relative(rootDir, subPath);
+        if (!isExcluded(relSubPath, excludePatterns) &&
+            fs.existsSync(subPath) &&
+            fs.statSync(subPath).isDirectory()) {
+            return findMatches(subPath, subPattern, excludePatterns, rootDir).map((m) => path.join(subDir, m));
         }
     }
     return results;
 }
-function walkDir(dir, callback, maxDepth = 5) {
+function walkDir(dir, callback, maxDepth = 5, rootDir = dir, excludePatterns = []) {
     if (maxDepth <= 0)
         return;
     let entries;
@@ -263,18 +320,41 @@ function walkDir(dir, callback, maxDepth = 5) {
         if (entry.name.startsWith('.') || entry.name === 'node_modules')
             continue;
         const fullPath = path.join(dir, entry.name);
+        const relativePath = path.relative(rootDir, fullPath);
+        if (isExcluded(relativePath, excludePatterns))
+            continue;
         try {
             const stat = fs.statSync(fullPath);
             if (entry.isFile()) {
                 callback(fullPath, stat);
             }
             else if (entry.isDirectory()) {
-                walkDir(fullPath, callback, maxDepth - 1);
+                walkDir(fullPath, callback, maxDepth - 1, rootDir, excludePatterns);
             }
         }
         catch {
             // skip inaccessible files
         }
     }
+}
+function normalizeExcludePatterns(patterns) {
+    return patterns
+        .map((p) => p.replace(/\\/g, '/').replace(/\/+$/, '').trim())
+        .filter(Boolean);
+}
+function isExcluded(relativePath, excludePatterns) {
+    const normalizedPath = relativePath.replace(/\\/g, '/').replace(/^\/+/, '');
+    return excludePatterns.some((pattern) => {
+        if (pattern.includes('*'))
+            return globToRegExp(pattern).test(normalizedPath);
+        return normalizedPath === pattern || normalizedPath.startsWith(`${pattern}/`);
+    });
+}
+function globToRegExp(pattern) {
+    const escaped = pattern
+        .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+        .replace(/\*\*/g, '\0')
+        .replace(/\*/g, '[^/]*');
+    return new RegExp(`^${escaped.replace(/\0/g, '.*')}$`);
 }
 //# sourceMappingURL=fileScanner.js.map

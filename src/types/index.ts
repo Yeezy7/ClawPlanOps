@@ -130,3 +130,144 @@ export interface RescheduleResult {
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type InputType = 'text' | 'url';
+
+// ---- weekly report -------------------------------------------
+
+export interface WeeklyReport {
+  week_start: string;
+  week_end: string;
+  total_tasks: number;
+  completed_tasks: number;
+  completed_details: CompletedTask[];
+  git_commits: GitCommit[];
+  progress_delta: number;
+  next_week_focus: string[];
+  blockers: string[];
+}
+
+export interface CompletedTask {
+  task: MicroTask;
+  completed_at: string;
+  evidence: string[];
+}
+
+export interface GitCommit {
+  hash: string;
+  date: string;
+  message: string;
+  files_changed: string[];
+}
+
+// ---- pre-submission check ------------------------------------
+
+export interface PreSubmissionCheck {
+  project_name: string;
+  deadline: string;
+  ready: boolean;
+  score: number;
+  checks: SubmissionCheckItem[];
+  missing_files: string[];
+  warnings: string[];
+  summary: string;
+}
+
+export interface SubmissionCheckItem {
+  category: string;
+  name: string;
+  required: boolean;
+  status: 'pass' | 'fail' | 'warn';
+  detail: string;
+}
+
+// ---- multi-project -------------------------------------------
+
+export interface ProjectEntry {
+  id: string;
+  name: string;
+  project_path: string;
+  task_requirements: TaskRequirements;
+  plan: DeliverablePlan;
+  calendar?: CalendarResult;
+  progress?: ProgressReport;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MultiProjectState {
+  projects: ProjectEntry[];
+  active_project_id?: string;
+}
+
+// ---- progress history ----------------------------------------
+
+export interface ProgressSnapshot {
+  timestamp: string;
+  progress_percent: number;
+  risk_level: string;
+  completed_count: number;
+  missing_count: number;
+  completed_ids: string[];
+  missing_ids: string[];
+}
+
+export interface ProgressTrend {
+  current_percent: number;
+  previous_percent: number;
+  delta_percent: number;
+  trend_direction: 'improving' | 'stable' | 'declining';
+  snapshots_count: number;
+  avg_daily_progress: number;
+  estimated_completion_date: string | null;
+  risk_trend: string[];
+}
+
+// ---- git task link -------------------------------------------
+
+export interface TaskGitLink {
+  task: MicroTask;
+  commits: GitCommit[];
+  linked_files: string[];
+  last_commit_date: string;
+}
+
+export interface GitTaskReport {
+  project_path: string;
+  total_commits: number;
+  task_links: TaskGitLink[];
+  unlinked_commits: GitCommit[];
+  coverage_percent: number;
+}
+
+// ---- notification --------------------------------------------
+
+export interface NotificationConfig {
+  enabled: boolean;
+  method: 'system' | 'email' | 'webhook' | 'all';
+  email?: {
+    smtp_host: string;
+    smtp_port: number;
+    username: string;
+    password: string;
+    from: string;
+    to: string;
+  };
+  webhook_url?: string;
+  reminder_minutes_before: number[];
+}
+
+export interface NotificationResult {
+  success: boolean;
+  method: string;
+  sent_count: number;
+  errors: string[];
+}
+
+// ---- cross-platform calendar ---------------------------------
+
+export interface CrossPlatformResult {
+  success: boolean;
+  platform: string;
+  method: string;
+  imported_count: number;
+  errors: string[];
+}
