@@ -22,6 +22,9 @@ export { getRecentCommits, linkCommitsToTasks, generateGitTaskMarkdown } from '.
 export { saveProgressSnapshot, loadProgressHistory, analyzeProgressTrend, exportProgressTrendMarkdown } from './evidence/progressHistory';
 export { importToSystemCalendar } from './calendar/crossPlatformCalendar';
 
+// Import Type from typebox for tool parameter schemas
+import { Type } from 'typebox';
+
 export type {
   TaskRequirements,
   DeliverablePlan,
@@ -209,117 +212,65 @@ function createPluginEntry() {
         clawplanops_cross_platform_calendar: calImportImpl,
       };
 
-      // Tool parameter schemas for OpenClaw
+      // Tool parameter schemas for OpenClaw (using TypeBox format)
       const TOOL_PARAMETERS: Record<string, any> = {
-        clawplanops_parse_task_requirements: {
-          type: 'object',
-          properties: {
-            content: { type: 'string', description: '任务通知文本或 URL 内容' },
-            input_type: { type: 'string', enum: ['text', 'url'], description: '输入类型，默认 text' },
-          },
-          required: ['content'],
-        },
-        clawplanops_build_deliverable_plan: {
-          type: 'object',
-          properties: {
-            task_requirements: { type: 'object', description: '从 parse_task_requirements 获取的任务要求' },
-            available_days: { type: 'number', description: '可用天数' },
-            daily_available_hours: { type: 'number', description: '每日可用小时数' },
-            custom_templates: { type: 'object', description: '自定义交付物模板' },
-          },
-          required: ['task_requirements'],
-        },
-        clawplanops_generate_calendar_schedule: {
-          type: 'object',
-          properties: {
-            micro_tasks: { type: 'array', description: '微任务列表' },
-            start_date: { type: 'string', description: '开始日期 YYYY-MM-DD' },
-            deadline: { type: 'string', description: '截止日期 YYYY-MM-DD' },
-            preferred_work_time: { type: 'string', description: '偏好工作时间段，如 20:00-22:00' },
-            output_path: { type: 'string', description: '输出文件路径' },
-          },
-          required: ['micro_tasks', 'start_date', 'deadline'],
-        },
-        clawplanops_check_progress_evidence: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-            evidence_rules: { type: 'array', description: '自定义证据规则' },
-            exclude_patterns: { type: 'array', description: '排除的文件模式' },
-          },
-          required: ['project_path'],
-        },
-        clawplanops_generate_daily_progress_report: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-            plan: { type: 'object', description: '项目计划' },
-            schedule: { type: 'object', description: '日程安排' },
-          },
-          required: ['project_path'],
-        },
-        clawplanops_reschedule_plan: {
-          type: 'object',
-          properties: {
-            progress_report: { type: 'object', description: '进度报告' },
-            original_plan: { type: 'object', description: '原始计划' },
-            deadline: { type: 'string', description: '截止日期' },
-          },
-          required: ['progress_report', 'original_plan', 'deadline'],
-        },
-        clawplanops_generate_weekly_report: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-            plan: { type: 'object', description: '项目计划' },
-          },
-          required: ['project_path'],
-        },
-        clawplanops_pre_submission_check: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-            plan: { type: 'object', description: '项目计划' },
-          },
-          required: ['project_path', 'plan'],
-        },
-        clawplanops_multi_project_status: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-          },
-          required: ['project_path'],
-        },
-        clawplanops_git_task_link: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-            plan: { type: 'object', description: '项目计划' },
-          },
-          required: ['project_path', 'plan'],
-        },
-        clawplanops_progress_trend: {
-          type: 'object',
-          properties: {
-            project_path: { type: 'string', description: '项目目录路径' },
-          },
-          required: ['project_path'],
-        },
-        clawplanops_send_notification: {
-          type: 'object',
-          properties: {
-            title: { type: 'string', description: '通知标题' },
-            message: { type: 'string', description: '通知内容' },
-          },
-          required: ['title', 'message'],
-        },
-        clawplanops_cross_platform_calendar: {
-          type: 'object',
-          properties: {
-            events: { type: 'array', description: '日历事件列表' },
-          },
-          required: ['events'],
-        },
+        clawplanops_parse_task_requirements: Type.Object({
+          content: Type.String({ description: '任务通知文本或 URL 内容' }),
+          input_type: Type.Optional(Type.String({ enum: ['text', 'url'], description: '输入类型，默认 text' })),
+        }),
+        clawplanops_build_deliverable_plan: Type.Object({
+          task_requirements: Type.Object({}, { description: '从 parse_task_requirements 获取的任务要求' }),
+          available_days: Type.Optional(Type.Number({ description: '可用天数' })),
+          daily_available_hours: Type.Optional(Type.Number({ description: '每日可用小时数' })),
+          custom_templates: Type.Optional(Type.Object({}, { description: '自定义交付物模板' })),
+        }),
+        clawplanops_generate_calendar_schedule: Type.Object({
+          micro_tasks: Type.Array(Type.Object({}), { description: '微任务列表' }),
+          start_date: Type.String({ description: '开始日期 YYYY-MM-DD' }),
+          deadline: Type.String({ description: '截止日期 YYYY-MM-DD' }),
+          preferred_work_time: Type.Optional(Type.String({ description: '偏好工作时间段，如 20:00-22:00' })),
+          output_path: Type.Optional(Type.String({ description: '输出文件路径' })),
+        }),
+        clawplanops_check_progress_evidence: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          evidence_rules: Type.Optional(Type.Array(Type.Object({}), { description: '自定义证据规则' })),
+          exclude_patterns: Type.Optional(Type.Array(Type.String(), { description: '排除的文件模式' })),
+        }),
+        clawplanops_generate_daily_progress_report: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          plan: Type.Optional(Type.Object({}, { description: '项目计划' })),
+          schedule: Type.Optional(Type.Object({}, { description: '日程安排' })),
+        }),
+        clawplanops_reschedule_plan: Type.Object({
+          progress_report: Type.Object({}, { description: '进度报告' }),
+          original_plan: Type.Object({}, { description: '原始计划' }),
+          deadline: Type.String({ description: '截止日期' }),
+        }),
+        clawplanops_generate_weekly_report: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          plan: Type.Optional(Type.Object({}, { description: '项目计划' })),
+        }),
+        clawplanops_pre_submission_check: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          plan: Type.Object({}, { description: '项目计划' }),
+        }),
+        clawplanops_multi_project_status: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+        }),
+        clawplanops_git_task_link: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          plan: Type.Object({}, { description: '项目计划' }),
+        }),
+        clawplanops_progress_trend: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+        }),
+        clawplanops_send_notification: Type.Object({
+          title: Type.String({ description: '通知标题' }),
+          message: Type.String({ description: '通知内容' }),
+        }),
+        clawplanops_cross_platform_calendar: Type.Object({
+          events: Type.Array(Type.Object({}), { description: '日历事件列表' }),
+        }),
       };
 
       // Register tools if api.registerTool is available
