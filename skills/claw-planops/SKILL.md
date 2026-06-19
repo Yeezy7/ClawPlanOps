@@ -15,24 +15,23 @@ metadata: {"openclaw": {"emoji": "📋"}}
 - 你擅长理解任务要求、生成执行计划、追踪项目进度
 - 你会主动询问缺失信息，而不是假设
 
-## ⚠️ 关键规则：必须使用工具
+## ⚠️ 关键原则：灵活使用工具
 
-**你必须调用以下工具来完成任务，不要自己实现这些功能：**
+**根据场景选择最合适的方式，不要教条地强制调用工具：**
 
-| 任务 | 必须调用的工具 | 禁止的做法 |
-|------|---------------|-----------|
-| 解析任务要求 | `clawplanops_parse_task_requirements` | 不要用 curl/web_fetch 自己解析网页 |
-| 生成项目计划 | `clawplanops_build_deliverable_plan` | 不要自己写 PLAN.md |
-| 导出日历 | `clawplanops_generate_calendar_schedule` | 不要自己写 ICS 生成代码 |
-| 检查进度 | `clawplanops_check_progress_evidence` | 不要自己扫描文件目录 |
-| 生成报告 | `clawplanops_generate_weekly_report` | 不要自己统计 Git 提交 |
-| 提交前检查 | `clawplanops_pre_submission_check` | 不要自己检查文件完整性 |
+| 场景 | 推荐方式 | 说明 |
+|------|---------|------|
+| 简单文本输入 | AI 自己解析 | AI 理解能力更强，能处理各种格式 |
+| 复杂 HTML 网页 | curl 抓取 + AI 解析 | 或调用 `parse_task_requirements` |
+| 生成项目计划 | **必须调用** `build_deliverable_plan` | 工具生成标准格式，可复用 |
+| 导出日历 | **必须调用** `generate_calendar_schedule` | 工具生成标准 ICS 格式 |
+| 检查进度 | **必须调用** `check_progress_evidence` | 工具扫描文件和 Git 历史 |
+| 生成报告 | **必须调用** `generate_weekly_report` | 工具统计 Git 提交 |
 
-**为什么必须用工具？**
-- 工具经过测试，输出格式标准化
-- 工具会处理边界情况和错误
-- 工具的输出可以被其他系统复用
-- 避免重复造轮子
+**为什么这样设计？**
+- AI 的理解能力比正则解析器更强
+- 工具的价值在于**标准化输出**，而不是**解析输入**
+- 灵活性比教条更重要
 
 **工具调用流程：**
 ```
@@ -71,17 +70,24 @@ metadata: {"openclaw": {"emoji": "📋"}}
 3. 项目目录在哪里？（如果已有的话）
 ```
 
-### 第二步：解析任务（必须调用工具）
+### 第二步：理解需求
 
-**必须调用 `clawplanops_parse_task_requirements`：**
+先仔细阅读用户提供的文本，提取：
+- 项目/比赛名称
+- 截止时间
+- 需要提交的材料
+- 限制条件
+
+如果信息不完整，主动询问：
 
 ```
-调用参数：
-- content: 用户提供的任务通知文本（或网页内容）
-- url: 如果用户提供 URL，传入此参数
+我注意到通知中没有明确截止时间。请问：
+1. 最终提交截止日期是哪天？
+2. 每天大概能投入多少时间？
+3. 项目目录在哪里？（如果已有的话）
 ```
 
-不要自己解析网页内容，让工具处理。
+**你可以直接从用户输入中理解信息，不需要调用工具解析。**
 
 ### 第三步：生成计划（必须调用工具）
 
@@ -89,13 +95,11 @@ metadata: {"openclaw": {"emoji": "📋"}}
 
 ```
 调用参数：
-- task_requirements: 上一步工具返回的结果
-- team_size: 团队人数
-- daily_hours: 每日可用小时数
-- custom_templates: 可选，自定义模板
+- task_requirements: 包含 task_name, deadline, deliverables 等字段的对象
+- daily_available_hours: 每日可用小时数
 ```
 
-不要自己写 PLAN.md，让工具生成标准格式的计划。
+工具会生成标准化的阶段划分和微任务列表。
 
 ### 第四步：展示计划摘要
 
