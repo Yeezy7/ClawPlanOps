@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.clawplanops_git_task_link = exports.clawplanops_multi_project_status = exports.clawplanops_pre_submission_check = exports.clawplanops_generate_weekly_report = exports.clawplanops_reschedule_plan = exports.clawplanops_generate_daily_progress_report = exports.clawplanops_check_progress_evidence = exports.clawplanops_generate_calendar_schedule = exports.clawplanops_build_deliverable_plan = exports.clawplanops_parse_task_requirements = exports.importToSystemCalendar = exports.exportProgressTrendMarkdown = exports.analyzeProgressTrend = exports.loadProgressHistory = exports.saveProgressSnapshot = exports.generateGitTaskMarkdown = exports.linkCommitsToTasks = exports.getRecentCommits = exports.sendBatchReminders = exports.sendEventReminder = exports.sendWebhookNotification = exports.sendEmailNotification = exports.sendSystemNotification = exports.getOverallStatus = exports.removeProject = exports.listProjects = exports.getActiveProject = exports.switchProject = exports.addProject = exports.loadMultiProjectState = exports.exportPreSubmissionMarkdown = exports.runPreSubmissionCheck = exports.exportWeeklyReportMarkdown = exports.generateWeeklyReport = exports.generateConfigTemplate = exports.resolveConfig = exports.loadProjectConfig = exports.exportMarkdownReschedule = exports.exportMarkdownProgress = exports.exportMarkdownPlan = exports.checkGitEvidence = exports.aiParseTaskRequirements = exports.fetchURLContent = exports.reschedulePlan = exports.generateDailyProgressReport = exports.checkProgressEvidence = exports.importToAppleCalendar = exports.generateCalendarSchedule = exports.buildDeliverablePlan = exports.parseTaskRequirements = void 0;
-exports.clawplanops_cross_platform_calendar = exports.clawplanops_send_notification = exports.clawplanops_progress_trend = void 0;
+exports.clawplanops_daily_review = exports.clawplanops_cross_platform_calendar = exports.clawplanops_send_notification = exports.clawplanops_progress_trend = void 0;
 exports.register = register;
 // Re-export all public APIs for programmatic use
 var parseTaskRequirements_1 = require("./tools/parseTaskRequirements");
@@ -93,6 +93,8 @@ const sendNotification_1 = require("./tools/sendNotification");
 Object.defineProperty(exports, "clawplanops_send_notification", { enumerable: true, get: function () { return sendNotification_1.sendNotificationTool; } });
 const crossPlatformCalendar_2 = require("./tools/crossPlatformCalendar");
 Object.defineProperty(exports, "clawplanops_cross_platform_calendar", { enumerable: true, get: function () { return crossPlatformCalendar_2.crossPlatformCalendarTool; } });
+const dailyReview_1 = require("./tools/dailyReview");
+Object.defineProperty(exports, "clawplanops_daily_review", { enumerable: true, get: function () { return dailyReview_1.dailyReview; } });
 // ---- Interactive tool descriptions ----
 const TOOL_DESCRIPTIONS = {
     clawplanops_parse_task_requirements: `解析任务通知文本或 URL，提取结构化信息。
@@ -186,6 +188,13 @@ const TOOL_DESCRIPTIONS = {
 输出：success、platform、method。
 
 ⚠️ 必须调用此工具，不要自己检测操作系统。工具会自动检测并调用正确的日历应用。`,
+    clawplanops_daily_review: `每日项目审查，检查进度、识别风险、生成建议。
+
+何时使用：收到定时触发（cron job）或用户说"每日审查"、"今日总结"时。
+输入：project_path、plan（可选）。
+输出：progress、trend、today_focus、overdue_tasks、risk_level、next_actions。
+
+⚠️ 必须调用此工具，不要自己扫描文件目录或读取 Git 历史。工具会综合分析项目状态并生成审查报告。`,
 };
 // ---- Plugin entry (OpenClaw format) ----
 function createPluginEntry() {
@@ -211,6 +220,7 @@ function createPluginEntry() {
                 clawplanops_progress_trend: progressTrend_1.progressTrendTool,
                 clawplanops_send_notification: sendNotification_1.sendNotificationTool,
                 clawplanops_cross_platform_calendar: crossPlatformCalendar_2.crossPlatformCalendarTool,
+                clawplanops_daily_review: dailyReview_1.dailyReview,
             };
             // Tool parameter schemas for OpenClaw (using TypeBox format)
             const TOOL_PARAMETERS = {
@@ -270,6 +280,10 @@ function createPluginEntry() {
                 }),
                 clawplanops_cross_platform_calendar: typebox_1.Type.Object({
                     events: typebox_1.Type.Array(typebox_1.Type.Object({}), { description: '日历事件列表' }),
+                }),
+                clawplanops_daily_review: typebox_1.Type.Object({
+                    project_path: typebox_1.Type.String({ description: '项目目录路径' }),
+                    plan: typebox_1.Type.Optional(typebox_1.Type.Object({}, { description: '项目计划文件' })),
                 }),
             };
             // Register tools if api.registerTool is available

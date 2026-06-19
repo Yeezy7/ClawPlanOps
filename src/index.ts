@@ -74,6 +74,7 @@ import { gitTaskLinkTool as gitLinkImpl } from './tools/gitTaskLink';
 import { progressTrendTool as trendImpl } from './tools/progressTrend';
 import { sendNotificationTool as notifyImpl } from './tools/sendNotification';
 import { crossPlatformCalendarTool as calImportImpl } from './tools/crossPlatformCalendar';
+import { dailyReview as dailyReviewImpl } from './tools/dailyReview';
 
 // ---- Interactive tool descriptions ----
 
@@ -181,6 +182,14 @@ const TOOL_DESCRIPTIONS = {
 输出：success、platform、method。
 
 ⚠️ 必须调用此工具，不要自己检测操作系统。工具会自动检测并调用正确的日历应用。`,
+
+  clawplanops_daily_review: `每日项目审查，检查进度、识别风险、生成建议。
+
+何时使用：收到定时触发（cron job）或用户说"每日审查"、"今日总结"时。
+输入：project_path、plan（可选）。
+输出：progress、trend、today_focus、overdue_tasks、risk_level、next_actions。
+
+⚠️ 必须调用此工具，不要自己扫描文件目录或读取 Git 历史。工具会综合分析项目状态并生成审查报告。`,
 };
 
 // ---- Plugin entry (OpenClaw format) ----
@@ -210,6 +219,7 @@ function createPluginEntry() {
         clawplanops_progress_trend: trendImpl,
         clawplanops_send_notification: notifyImpl,
         clawplanops_cross_platform_calendar: calImportImpl,
+        clawplanops_daily_review: dailyReviewImpl,
       };
 
       // Tool parameter schemas for OpenClaw (using TypeBox format)
@@ -271,6 +281,10 @@ function createPluginEntry() {
         clawplanops_cross_platform_calendar: Type.Object({
           events: Type.Array(Type.Object({}), { description: '日历事件列表' }),
         }),
+        clawplanops_daily_review: Type.Object({
+          project_path: Type.String({ description: '项目目录路径' }),
+          plan: Type.Optional(Type.Object({}, { description: '项目计划文件' })),
+        }),
       };
 
       // Register tools if api.registerTool is available
@@ -331,6 +345,7 @@ export { gitLinkImpl as clawplanops_git_task_link };
 export { trendImpl as clawplanops_progress_trend };
 export { notifyImpl as clawplanops_send_notification };
 export { calImportImpl as clawplanops_cross_platform_calendar };
+export { dailyReviewImpl as clawplanops_daily_review };
 
 // Default export for OpenClaw plugin system
 export default createPluginEntry();

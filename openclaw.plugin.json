@@ -24,7 +24,8 @@
       "clawplanops_git_task_link",
       "clawplanops_progress_trend",
       "clawplanops_send_notification",
-      "clawplanops_cross_platform_calendar"
+      "clawplanops_cross_platform_calendar",
+      "clawplanops_daily_review"
     ]
   },
   "toolMetadata": {
@@ -40,7 +41,8 @@
     "clawplanops_git_task_link": { "configSignals": [] },
     "clawplanops_progress_trend": { "configSignals": [] },
     "clawplanops_send_notification": { "configSignals": [] },
-    "clawplanops_cross_platform_calendar": { "configSignals": [] }
+    "clawplanops_cross_platform_calendar": { "configSignals": [] },
+    "clawplanops_daily_review": { "configSignals": [] }
   },
   "commandAliases": [
     {

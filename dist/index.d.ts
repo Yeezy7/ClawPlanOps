@@ -34,6 +34,7 @@ import { gitTaskLinkTool as gitLinkImpl } from './tools/gitTaskLink';
 import { progressTrendTool as trendImpl } from './tools/progressTrend';
 import { sendNotificationTool as notifyImpl } from './tools/sendNotification';
 import { crossPlatformCalendarTool as calImportImpl } from './tools/crossPlatformCalendar';
+import { dailyReview as dailyReviewImpl } from './tools/dailyReview';
 export { parseImpl as clawplanops_parse_task_requirements };
 export { buildImpl as clawplanops_build_deliverable_plan };
 export { calImpl as clawplanops_generate_calendar_schedule };
@@ -47,6 +48,7 @@ export { gitLinkImpl as clawplanops_git_task_link };
 export { trendImpl as clawplanops_progress_trend };
 export { notifyImpl as clawplanops_send_notification };
 export { calImportImpl as clawplanops_cross_platform_calendar };
+export { dailyReviewImpl as clawplanops_daily_review };
 declare const _default: {
     id: string;
     name: string;

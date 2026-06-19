@@ -181,6 +181,56 @@ metadata: {"openclaw": {"emoji": "📋"}}
 
 ---
 
+## 场景 2.5：每日自动审查（定时触发）
+
+当收到定时触发（cron job）或用户说"每日审查"、"今日总结"时：
+
+### 执行每日审查（必须调用工具）
+
+**必须调用 `clawplanops_daily_review`：**
+
+```
+调用参数：
+- project_path: 项目目录路径
+- plan: 计划文件路径（可选）
+```
+
+### 展示审查结果
+
+```
+📋 每日审查报告 — {review_date}
+
+📊 当前进度：{progress}% {progress_bar}
+📈 趋势：{trend_direction}
+⚠️ 风险等级：{risk_level}
+
+🎯 今日重点：
+{today_focus}
+
+{如果有逾期任务}
+🚨 逾期任务：
+{overdue_tasks}
+
+💡 下一步建议：
+{next_actions}
+```
+
+### 自动化设置
+
+可以通过 cron 任务实现每日自动审查：
+
+```bash
+# 创建每日审查 cron 任务（每天早上 9:00）
+openclaw cron create "0 9 * * *" \
+  --name "每日项目审查" \
+  --session main \
+  --system-event "请执行每日项目审查：检查所有活跃项目的进度，发送审查报告" \
+  --wake now \
+  --tz "Asia/Shanghai"
+```
+
+---
+
 ## 场景 3：用户要提交材料
 
 当用户说"准备提交"、"检查一下能不能交了"、"提交前检查"时：
