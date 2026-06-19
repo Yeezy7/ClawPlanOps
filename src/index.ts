@@ -209,13 +209,126 @@ function createPluginEntry() {
         clawplanops_cross_platform_calendar: calImportImpl,
       };
 
+      // Tool parameter schemas for OpenClaw
+      const TOOL_PARAMETERS: Record<string, any> = {
+        clawplanops_parse_task_requirements: {
+          type: 'object',
+          properties: {
+            content: { type: 'string', description: '任务通知文本或 URL 内容' },
+            input_type: { type: 'string', enum: ['text', 'url'], description: '输入类型，默认 text' },
+          },
+          required: ['content'],
+        },
+        clawplanops_build_deliverable_plan: {
+          type: 'object',
+          properties: {
+            task_requirements: { type: 'object', description: '从 parse_task_requirements 获取的任务要求' },
+            available_days: { type: 'number', description: '可用天数' },
+            daily_available_hours: { type: 'number', description: '每日可用小时数' },
+            custom_templates: { type: 'object', description: '自定义交付物模板' },
+          },
+          required: ['task_requirements'],
+        },
+        clawplanops_generate_calendar_schedule: {
+          type: 'object',
+          properties: {
+            micro_tasks: { type: 'array', description: '微任务列表' },
+            start_date: { type: 'string', description: '开始日期 YYYY-MM-DD' },
+            deadline: { type: 'string', description: '截止日期 YYYY-MM-DD' },
+            preferred_work_time: { type: 'string', description: '偏好工作时间段，如 20:00-22:00' },
+            output_path: { type: 'string', description: '输出文件路径' },
+          },
+          required: ['micro_tasks', 'start_date', 'deadline'],
+        },
+        clawplanops_check_progress_evidence: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+            evidence_rules: { type: 'array', description: '自定义证据规则' },
+            exclude_patterns: { type: 'array', description: '排除的文件模式' },
+          },
+          required: ['project_path'],
+        },
+        clawplanops_generate_daily_progress_report: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+            plan: { type: 'object', description: '项目计划' },
+            schedule: { type: 'object', description: '日程安排' },
+          },
+          required: ['project_path'],
+        },
+        clawplanops_reschedule_plan: {
+          type: 'object',
+          properties: {
+            progress_report: { type: 'object', description: '进度报告' },
+            original_plan: { type: 'object', description: '原始计划' },
+            deadline: { type: 'string', description: '截止日期' },
+          },
+          required: ['progress_report', 'original_plan', 'deadline'],
+        },
+        clawplanops_generate_weekly_report: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+            plan: { type: 'object', description: '项目计划' },
+          },
+          required: ['project_path'],
+        },
+        clawplanops_pre_submission_check: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+            plan: { type: 'object', description: '项目计划' },
+          },
+          required: ['project_path', 'plan'],
+        },
+        clawplanops_multi_project_status: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+          },
+          required: ['project_path'],
+        },
+        clawplanops_git_task_link: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+            plan: { type: 'object', description: '项目计划' },
+          },
+          required: ['project_path', 'plan'],
+        },
+        clawplanops_progress_trend: {
+          type: 'object',
+          properties: {
+            project_path: { type: 'string', description: '项目目录路径' },
+          },
+          required: ['project_path'],
+        },
+        clawplanops_send_notification: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: '通知标题' },
+            message: { type: 'string', description: '通知内容' },
+          },
+          required: ['title', 'message'],
+        },
+        clawplanops_cross_platform_calendar: {
+          type: 'object',
+          properties: {
+            events: { type: 'array', description: '日历事件列表' },
+          },
+          required: ['events'],
+        },
+      };
+
       // Register tools if api.registerTool is available
       if (api.registerTool) {
         for (const [name, impl] of Object.entries(toolRegistry)) {
           api.registerTool({
             name,
             description: TOOL_DESCRIPTIONS[name as keyof typeof TOOL_DESCRIPTIONS] || '',
-            parameters: { type: 'object' },
+            parameters: TOOL_PARAMETERS[name] || { type: 'object' },
             async execute(_id: string, params: any) {
               try {
                 const result = (impl as any)(params);
