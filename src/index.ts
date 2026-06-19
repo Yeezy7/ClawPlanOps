@@ -276,26 +276,33 @@ function createPluginEntry() {
       // Register tools if api.registerTool is available
       if (api.registerTool) {
         for (const [name, impl] of Object.entries(toolRegistry)) {
-          api.registerTool({
-            name,
-            description: TOOL_DESCRIPTIONS[name as keyof typeof TOOL_DESCRIPTIONS] || '',
-            parameters: TOOL_PARAMETERS[name] || { type: 'object' },
-            async execute(_id: string, params: any) {
-              try {
-                const result = (impl as any)(params);
-                return {
-                  content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                };
-              } catch (err: any) {
-                return {
-                  content: [{ type: 'text', text: `错误: ${err.message}` }],
-                  isError: true,
-                };
-              }
-            },
-          });
+          try {
+            api.registerTool({
+              name,
+              description: TOOL_DESCRIPTIONS[name as keyof typeof TOOL_DESCRIPTIONS] || '',
+              parameters: TOOL_PARAMETERS[name] || { type: 'object' },
+              async execute(_id: string, params: any) {
+                try {
+                  const result = (impl as any)(params);
+                  return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                  };
+                } catch (err: any) {
+                  return {
+                    content: [{ type: 'text', text: `错误: ${err.message}` }],
+                    isError: true,
+                  };
+                }
+              },
+            }, { optional: false });
+            logger?.info?.(`[claw-planops] Successfully registered tool: ${name}`);
+          } catch (err: any) {
+            logger?.error?.(`[claw-planops] Failed to register tool ${name}: ${err.message}`);
+          }
         }
         logger?.info?.(`[claw-planops] Registered ${Object.keys(toolRegistry).length} interactive tools`);
+      } else {
+        logger?.error?.(`[claw-planops] api.registerTool is not available`);
       }
 
       // Register lifecycle hooks
