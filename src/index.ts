@@ -283,7 +283,7 @@ function createPluginEntry() {
               parameters: TOOL_PARAMETERS[name] || { type: 'object' },
               async execute(_id: string, params: any) {
                 try {
-                  const result = (impl as any)(params);
+                  const result = await (impl as any)(params);
                   return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                   };
