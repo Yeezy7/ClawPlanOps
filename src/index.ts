@@ -75,12 +75,13 @@ import { crossPlatformCalendarTool as calImportImpl } from './tools/crossPlatfor
 // ---- Interactive tool descriptions ----
 
 const TOOL_DESCRIPTIONS = {
-  clawplanops_parse_task_requirements: `解析任务通知文本，提取结构化信息。
+  clawplanops_parse_task_requirements: `解析任务通知文本或 URL，提取结构化信息。
 
-何时使用：用户提供了一段比赛通知、作业要求、或项目说明文本时。
+何时使用：用户提供了一段比赛通知、作业要求、或项目说明文本（或 URL）时。
+输入：content（文本或 URL）、可选的 input_type（'text' 或 'url'）。
 输出：包含 task_name、deadline、deliverables、constraints 的 JSON。
 
-注意：在对话流程中，你应该自己解析文本（LLM 能力更强），不要调用此工具。此工具仅用于 CLI 备用。`,
+⚠️ 必须调用此工具，不要自己解析。工具会处理格式差异和边界情况。`,
 
   clawplanops_build_deliverable_plan: `根据任务要求生成交付物计划和微任务。
 
@@ -88,11 +89,7 @@ const TOOL_DESCRIPTIONS = {
 输入：task_requirements（从解析步骤获得）、可选的 available_days、daily_available_hours。
 输出：包含 phases、deliverables、micro_tasks 的完整计划。
 
-交互流程：
-1. 确认用户已提供截止时间和交付物
-2. 调用此工具生成计划
-3. 用表格展示阶段划分
-4. 询问用户是否需要调整`,
+⚠️ 必须调用此工具，不要自己写计划文件。工具会生成标准格式。`,
 
   clawplanops_generate_calendar_schedule: `生成 .ics 日历文件，包含 VALARM 提醒。
 
@@ -100,10 +97,7 @@ const TOOL_DESCRIPTIONS = {
 输入：micro_tasks、start_date、deadline、可选的 preferred_work_time。
 输出：日历文件路径和事件数量。
 
-交互流程：
-1. 询问用户偏好的工作时间段（默认 20:00-22:00）
-2. 调用此工具生成日历
-3. 告知文件位置和导入方法`,
+⚠️ 必须调用此工具，不要自己写 ICS 生成代码。工具会生成标准 RFC 5545 格式。`,
 
   clawplanops_check_progress_evidence: `扫描项目目录，检查文件证据和 Git 提交，计算进度百分比。
 
@@ -111,11 +105,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path。
 输出：progress_percent、risk_level、completed、missing。
 
-交互流程：
-1. 确认项目路径
-2. 调用此工具检查进度
-3. 用进度条和表格展示结果
-4. 给出下一步建议`,
+⚠️ 必须调用此工具，不要自己扫描文件目录。工具会处理文件匹配和 Git 历史分析。`,
 
   clawplanops_generate_daily_progress_report: `生成每日进度报告，显示今日计划和下一步行动。
 
@@ -123,10 +113,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path、plan、schedule。
 输出：planned_today、next_actions。
 
-交互流程：
-1. 调用此工具
-2. 展示今日任务列表
-3. 建议优先级`,
+⚠️ 必须调用此工具，不要自己统计今日任务。工具会基于计划和进度生成报告。`,
 
   clawplanops_reschedule_plan: `根据进度落后情况生成重排建议。
 
@@ -134,10 +121,7 @@ const TOOL_DESCRIPTIONS = {
 输入：progress_report、original_plan、deadline。
 输出：delay_days、priority_tasks、removed_tasks、advice。
 
-交互流程：
-1. 调用此工具
-2. 展示重排建议
-3. 询问用户是否接受建议`,
+⚠️ 必须调用此工具，不要自己计算重排方案。工具会生成优化的调整建议。`,
 
   clawplanops_generate_weekly_report: `生成周报，包含完成任务、Git 提交、下周重点。
 
@@ -145,11 +129,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path、plan。
 输出：completed_tasks、git_commits、next_week_focus。
 
-交互流程：
-1. 调用此工具
-2. 用表格展示本周完成
-3. 展示 Git 提交记录
-4. 给出下周建议`,
+⚠️ 必须调用此工具，不要自己统计 Git 提交。工具会分析 Git 历史并生成标准化报告。`,
 
   clawplanops_pre_submission_check: `提交前检查，验证所有材料是否齐全。
 
@@ -157,11 +137,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path、plan。
 输出：ready、score、checks、missing_files。
 
-交互流程：
-1. 调用此工具
-2. 用表格展示检查结果
-3. 标注缺失项
-4. 建议补全顺序`,
+⚠️ 必须调用此工具，不要自己检查文件完整性。工具会验证所有必需文件和格式。`,
 
   clawplanops_multi_project_status: `查看所有并行项目的状态概览。
 
@@ -169,10 +145,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path。
 输出：total_projects、projects_summary。
 
-交互流程：
-1. 调用此工具
-2. 用表格展示所有项目
-3. 询问用户要切换到哪个项目`,
+⚠️ 必须调用此工具，不要自己读取项目状态。工具会汇总所有项目的进度。`,
 
   clawplanops_git_task_link: `分析 Git 提交与任务的关联关系。
 
@@ -180,10 +153,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path、plan。
 输出：task_links、unlinked_commits、coverage_percent。
 
-交互流程：
-1. 调用此工具
-2. 展示关联覆盖率
-3. 列出已关联和未关联的提交`,
+⚠️ 必须调用此工具，不要自己分析 Git 提交。工具会解析 commit message 并匹配任务。`,
 
   clawplanops_progress_trend: `分析进度趋势，计算日均进度和预计完成时间。
 
@@ -191,10 +161,7 @@ const TOOL_DESCRIPTIONS = {
 输入：project_path。
 输出：trend_direction、avg_daily_progress、estimated_completion_date。
 
-交互流程：
-1. 调用此工具
-2. 展示趋势方向（上升/下降/平稳）
-3. 展示预计完成时间`,
+⚠️ 必须调用此工具，不要自己计算趋势。工具会分析历史快照并预测完成时间。`,
 
   clawplanops_send_notification: `发送系统通知提醒。
 
@@ -202,10 +169,7 @@ const TOOL_DESCRIPTIONS = {
 输入：title、message。
 输出：success、method。
 
-交互流程：
-1. 确认标题和消息
-2. 调用此工具
-3. 确认发送成功`,
+⚠️ 必须调用此工具，不要自己调用系统命令。工具会处理跨平台通知。`,
 
   clawplanops_cross_platform_calendar: `跨平台日历导入（自动检测系统）。
 
@@ -213,10 +177,7 @@ const TOOL_DESCRIPTIONS = {
 输入：events。
 输出：success、platform、method。
 
-交互流程：
-1. 调用此工具
-2. 告知检测到的系统和导入方式
-3. 确认导入结果`,
+⚠️ 必须调用此工具，不要自己检测操作系统。工具会自动检测并调用正确的日历应用。`,
 };
 
 // ---- Plugin entry (OpenClaw format) ----

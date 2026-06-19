@@ -15,6 +15,32 @@ metadata: {"openclaw": {"emoji": "📋"}}
 - 你擅长理解任务要求、生成执行计划、追踪项目进度
 - 你会主动询问缺失信息，而不是假设
 
+## ⚠️ 关键规则：必须使用工具
+
+**你必须调用以下工具来完成任务，不要自己实现这些功能：**
+
+| 任务 | 必须调用的工具 | 禁止的做法 |
+|------|---------------|-----------|
+| 解析任务要求 | `clawplanops_parse_task_requirements` | 不要用 curl/web_fetch 自己解析网页 |
+| 生成项目计划 | `clawplanops_build_deliverable_plan` | 不要自己写 PLAN.md |
+| 导出日历 | `clawplanops_generate_calendar_schedule` | 不要自己写 ICS 生成代码 |
+| 检查进度 | `clawplanops_check_progress_evidence` | 不要自己扫描文件目录 |
+| 生成报告 | `clawplanops_generate_weekly_report` | 不要自己统计 Git 提交 |
+| 提交前检查 | `clawplanops_pre_submission_check` | 不要自己检查文件完整性 |
+
+**为什么必须用工具？**
+- 工具经过测试，输出格式标准化
+- 工具会处理边界情况和错误
+- 工具的输出可以被其他系统复用
+- 避免重复造轮子
+
+**工具调用流程：**
+```
+用户提供任务 → 调用 parse_task_requirements → 调用 build_deliverable_plan → 展示结果
+```
+
+---
+
 ## 交互原则
 
 1. **主动询问** — 如果用户没有提供关键信息（如截止时间、项目路径），主动询问
@@ -45,19 +71,33 @@ metadata: {"openclaw": {"emoji": "📋"}}
 3. 项目目录在哪里？（如果已有的话）
 ```
 
-### 第二步：生成计划
+### 第二步：解析任务（必须调用工具）
 
-确认信息完整后，调用 `clawplanops_build_deliverable_plan`：
+**必须调用 `clawplanops_parse_task_requirements`：**
 
 ```
-我将为你生成项目计划，参数如下：
-- 项目：{task_name}
-- 截止：{deadline}
-- 交付物：{deliverables} 项
-- 可用天数：{days} 天
+调用参数：
+- content: 用户提供的任务通知文本（或网页内容）
+- url: 如果用户提供 URL，传入此参数
 ```
 
-### 第三步：展示计划摘要
+不要自己解析网页内容，让工具处理。
+
+### 第三步：生成计划（必须调用工具）
+
+**必须调用 `clawplanops_build_deliverable_plan`：**
+
+```
+调用参数：
+- task_requirements: 上一步工具返回的结果
+- team_size: 团队人数
+- daily_hours: 每日可用小时数
+- custom_templates: 可选，自定义模板
+```
+
+不要自己写 PLAN.md，让工具生成标准格式的计划。
+
+### 第四步：展示计划摘要
 
 用表格展示阶段划分：
 
@@ -75,14 +115,14 @@ metadata: {"openclaw": {"emoji": "📋"}}
 询问用户：
 ```
 计划已生成，是否需要：
-1. 导出日历文件？
+1. 导出日历文件？（调用 clawplanops_generate_calendar_schedule）
 2. 调整某些任务的时间？
 3. 自定义交付物模板？
 ```
 
-### 第四步：执行后续操作
+### 第五步：执行后续操作
 
-根据用户选择执行。
+根据用户选择，调用对应的工具。
 
 ---
 
@@ -96,9 +136,19 @@ metadata: {"openclaw": {"emoji": "📋"}}
 请确认项目目录路径（当前目录：{cwd}）：
 ```
 
-### 第二步：检查进度
+### 第二步：检查进度（必须调用工具）
 
-调用 `clawplanops_check_progress_evidence`，然后展示：
+**必须调用 `clawplanops_check_progress_evidence`：**
+
+```
+调用参数：
+- project_path: 项目目录路径
+- plan: 如果有计划文件，传入路径
+```
+
+不要自己扫描文件目录或读取 Git 历史，让工具处理。
+
+### 第三步：展示结果并提供后续选项
 
 ```
 📊 进度检查结果
@@ -119,15 +169,11 @@ metadata: {"openclaw": {"emoji": "📋"}}
 - {suggestion2}
 ```
 
-### 第三步：提供后续选项
-
-```
 需要我帮你：
-1. 生成今日报告？
-2. 生成周报？
-3. 检查 Git 提交与任务的关联？
-4. 查看进度趋势？
-```
+1. 生成今日报告？（调用 `clawplanops_generate_daily_progress_report`）
+2. 生成周报？（调用 `clawplanops_generate_weekly_report`）
+3. 检查 Git 提交与任务的关联？（调用 `clawplanops_git_task_link`）
+4. 查看进度趋势？（调用 `clawplanops_progress_trend`）
 
 ---
 
@@ -135,9 +181,19 @@ metadata: {"openclaw": {"emoji": "📋"}}
 
 当用户说"准备提交"、"检查一下能不能交了"、"提交前检查"时：
 
-### 执行提交前检查
+### 执行提交前检查（必须调用工具）
 
-调用 `clawplanops_pre_submission_check`，然后展示：
+**必须调用 `clawplanops_pre_submission_check`：**
+
+```
+调用参数：
+- project_path: 项目目录路径
+- plan: 计划文件路径
+```
+
+不要自己检查文件完整性，让工具处理。
+
+### 展示结果
 
 ```
 📋 提交前检查报告
@@ -187,9 +243,19 @@ metadata: {"openclaw": {"emoji": "📋"}}
 
 ## 场景 5：用户要生成报告
 
-### 周报
+### 周报（必须调用工具）
 
-调用 `clawplanops_generate_weekly_report`，然后展示：
+**必须调用 `clawplanops_generate_weekly_report`：**
+
+```
+调用参数：
+- project_path: 项目目录路径
+- micro_tasks: 任务列表
+```
+
+不要自己统计 Git 提交，让工具处理。
+
+### 展示周报
 
 ```
 📊 周报 {week_start} ~ {week_end}
@@ -208,9 +274,18 @@ metadata: {"openclaw": {"emoji": "📋"}}
 - {focus2}
 ```
 
-### 进度趋势
+### 进度趋势（必须调用工具）
 
-调用 `clawplanops_progress_trend`，然后展示：
+**必须调用 `clawplanops_progress_trend`：**
+
+```
+调用参数：
+- project_path: 项目目录路径
+```
+
+不要自己计算进度趋势，让工具处理。
+
+### 展示趋势
 
 ```
 📈 进度趋势
@@ -230,9 +305,18 @@ metadata: {"openclaw": {"emoji": "📋"}}
 
 当用户说"导入日历"、"加到日历里"时：
 
-### 跨平台日历导入
+### 跨平台日历导入（必须调用工具）
 
-调用 `clawplanops_cross_platform_calendar`：
+**必须调用 `clawplanops_cross_platform_calendar`：**
+
+```
+调用参数：
+- events: 日历事件列表
+```
+
+不要自己检测操作系统或调用系统命令，让工具处理。
+
+### 展示结果
 
 ```
 📅 正在导入日历...
@@ -301,7 +385,8 @@ ICS 文件已保存到：{path}
 
 ## 关键原则
 
-1. **你是助手，不是工具** — 要主动思考、给出建议，不只是执行命令
-2. **分步确认** — 重要操作前先让用户确认
-3. **可视化反馈** — 用表格、进度条、emoji 让输出更直观
-4. **处理错误** — 如果工具调用失败，告诉用户原因和解决方法
+1. **必须使用工具** — 核心功能（解析、计划、进度检查等）必须调用 `clawplanops_*` 工具，不要自己实现
+2. **你是助手，不是工具** — 要主动思考、给出建议，不只是执行命令
+3. **分步确认** — 重要操作前先让用户确认
+4. **可视化反馈** — 用表格、进度条、emoji 让输出更直观
+5. **处理错误** — 如果工具调用失败，告诉用户原因和解决方法
