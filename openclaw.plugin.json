@@ -5,7 +5,7 @@
   "description": "基于交付物证据的项目执行规划插件。输入任务通知 → 自动解析要求 → 生成计划 → 导出日历 → 检查真实进度 → 动态重排。支持周报生成、提交前检查、多任务并行、提醒推送、Git 关联、历史追踪、跨平台日历。",
   "enabledByDefault": true,
   "activation": {
-    "onStartup": false
+    "onStartup": true
   },
   "skills": [
     "./skills"
