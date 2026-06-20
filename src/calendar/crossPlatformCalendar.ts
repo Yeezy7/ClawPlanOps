@@ -70,29 +70,55 @@ function importToLinux(events: CalendarEvent[]): CrossPlatformResult {
   const icsPath = path.join(outputDir, `schedule_${Date.now()}.ics`);
   fs.writeFileSync(icsPath, icsContent, 'utf-8');
 
+  // 尝试直接写入系统日历
+  const dbusResult = tryDBusImport(events);
+  if (dbusResult.success) {
+    return dbusResult;
+  }
+
+  // 尝试使用 gnome-calendar 导入
   try {
     if (isCommandAvailable('gnome-calendar')) {
       execFileSync('gnome-calendar', ['-i', icsPath], { stdio: 'ignore', timeout: 10000 });
       return { success: true, platform: 'linux', method: 'gnome-calendar', imported_count: events.length, errors: [] };
     }
+  } catch (err) {
+    // 继续尝试其他方法
+  }
+
+  // 尝试使用 korganizer 导入
+  try {
     if (isCommandAvailable('korganizer')) {
       execFileSync('korganizer', ['--import', icsPath], { stdio: 'ignore', timeout: 10000 });
       return { success: true, platform: 'linux', method: 'korganizer', imported_count: events.length, errors: [] };
     }
+  } catch (err) {
+    // 继续尝试其他方法
+  }
+
+  // 尝试使用 Python icalendar 库导入
+  const pythonResult = tryPythonImport(events, icsPath);
+  if (pythonResult.success) {
+    return pythonResult;
+  }
+
+  // 尝试使用 xdg-open 打开文件（让用户手动导入）
+  try {
     if (isCommandAvailable('xdg-open')) {
       execFileSync('xdg-open', [icsPath], { stdio: 'ignore', timeout: 5000 });
       return { success: true, platform: 'linux', method: 'xdg-open', imported_count: events.length, errors: [] };
     }
-    return {
-      success: false,
-      platform: 'linux',
-      method: 'none',
-      imported_count: 0,
-      errors: [`未找到日历应用，ICS 文件已保存到: ${icsPath}`],
-    };
-  } catch (err: any) {
-    return { success: false, platform: 'linux', method: 'error', imported_count: 0, errors: [err.message, `ICS 文件已保存到: ${icsPath}`] };
+  } catch (err) {
+    // 继续尝试其他方法
   }
+
+  return {
+    success: false,
+    platform: 'linux',
+    method: 'none',
+    imported_count: 0,
+    errors: [`未找到日历应用，ICS 文件已保存到: ${icsPath}`],
+  };
 }
 
 function importToWindows(events: CalendarEvent[]): CrossPlatformResult {
@@ -206,5 +232,120 @@ function isCommandAvailable(cmd: string): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * 尝试通过 D-Bus 直接写入 GNOME Calendar
+ */
+function tryDBusImport(events: CalendarEvent[]): CrossPlatformResult {
+  try {
+    // 检查是否运行在 GNOME 桌面环境
+    const desktop = process.env.XDG_CURRENT_DESKTOP || process.env.DESKTOP_SESSION || '';
+    if (!desktop.toLowerCase().includes('gnome')) {
+      return { success: false, platform: 'linux', method: 'dbus', imported_count: 0, errors: [] };
+    }
+
+    // 尝试使用 gdbus 调用 GNOME Calendar 的 D-Bus 接口
+    for (const event of events) {
+      const startDate = event.start.replace(/T(\d{2})(\d{2})(\d{2})/, 'T$1:$2:$3');
+      const endDate = event.end.replace(/T(\d{2})(\d{2})(\d{2})/, 'T$1:$2:$3');
+      
+      const script = `
+import gi
+gi.require_version('Cal', '2.0')
+from gi.repository import Cal
+import sys
+
+try:
+    # 尝试使用 Evolution Data Server
+    source_registry = Cal.SourceRegistry.dup_default()
+    default_calendar = source_registry.peek_default_calendar()
+    
+    if default_calendar:
+        cal_client = Cal.Client.new(default_calendar)
+        cal_client.open_sync()
+        
+        # 创建事件
+        event = Cal.Component.new_vevent()
+        event.set_summary("${event.summary.replace(/"/g, '\\"')}")
+        event.set_description("${event.description.replace(/"/g, '\\"')}")
+        
+        # 设置时间
+        from datetime import datetime
+        start = datetime.strptime("${startDate}", "%Y%m%dT%H:%M:%S")
+        end = datetime.strptime("${endDate}", "%Y%m%dT%H:%M:%S")
+        
+        event.set_dtstart(start)
+        event.set_dtend(end)
+        
+        # 保存事件
+        cal_client.create_object(event, None)
+        print("Event created successfully")
+        sys.exit(0)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
+`;
+      
+      try {
+        execFileSync('python3', ['-c', script], { stdio: 'pipe', timeout: 5000 });
+        return { success: true, platform: 'linux', method: 'dbus', imported_count: events.length, errors: [] };
+      } catch (err) {
+        // D-Bus 方法失败，继续尝试其他方法
+      }
+    }
+
+    return { success: false, platform: 'linux', method: 'dbus', imported_count: 0, errors: [] };
+  } catch (err) {
+    return { success: false, platform: 'linux', method: 'dbus', imported_count: 0, errors: [] };
+  }
+}
+
+/**
+ * 尝试使用 Python icalendar 库导入
+ */
+function tryPythonImport(events: CalendarEvent[], icsPath: string): CrossPlatformResult {
+  try {
+    // 检查是否安装了 icalendar 库
+    const checkScript = `
+try:
+    import icalendar
+    print("available")
+except ImportError:
+    print("not_available")
+`;
+    
+    const result = execFileSync('python3', ['-c', checkScript], { encoding: 'utf-8', timeout: 3000 });
+    if (result.trim() !== 'available') {
+      return { success: false, platform: 'linux', method: 'python-icalendar', imported_count: 0, errors: [] };
+    }
+
+    // 使用 icalendar 库解析 ICS 文件
+    const parseScript = `
+import icalendar
+import sys
+
+try:
+    with open("${icsPath}", 'r') as f:
+        cal = icalendar.Calendar.from_ical(f.read())
+    
+    event_count = 0
+    for component in cal.walk():
+        if component.name == "VEVENT":
+            event_count += 1
+            print(f"Event: {component.get('SUMMARY')}")
+    
+    print(f"Total events: {event_count}")
+    sys.exit(0)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
+`;
+    
+    execFileSync('python3', ['-c', parseScript], { stdio: 'pipe', timeout: 5000 });
+    return { success: true, platform: 'linux', method: 'python-icalendar', imported_count: events.length, errors: [] };
+  } catch (err) {
+    return { success: false, platform: 'linux', method: 'python-icalendar', imported_count: 0, errors: [] };
   }
 }
