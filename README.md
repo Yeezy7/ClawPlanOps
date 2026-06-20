@@ -1,82 +1,65 @@
 # ClawPlanOps
 
-基于交付物证据的项目执行规划 OpenClaw 技能插件。
+> 基于交付物证据的项目执行规划 OpenClaw 技能插件
 
-> 输入任务通知 → 自动解析任务要求 → 生成交付物计划 → 导出日历 → 检查真实进度证据 → 动态调整后续计划。
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/Yeezy7/ClawPlanOps)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-Plugin-orange.svg)](https://docs.openclaw.ai)
 
-## 核心特性
+**输入任务通知 → 自动解析要求 → 生成计划 → 导出日历 → 检查进度 → 动态调整**
 
-- **从任务要求自动生成计划** — 输入一段通知文本，自动识别任务名称、截止时间、交付物、约束条件
-- **从最终交付物反向拆解微任务** — 每个交付物拆成 30-90 分钟的微任务，按优先级排序
-- **不靠用户打卡，而靠真实文件证据检查进度** — 扫描项目目录 + Git 历史，加权计算进度百分比
-- **进度落后时自动重排** — 压缩低优先级任务、删除可选任务、重建阶段时间线
-- **RFC 5545 标准日历导出** — ICS 文件含 VALARM 提醒（30分钟前 + 高优任务1天前）
-- **零运行时依赖** — ICS 生成器、文件扫描器、HTML 解析器全部自实现
+---
 
-### v0.3.0 新功能
+## ✨ 核心特性
 
-- **周报生成** — 根据本周完成的微任务和 Git 提交自动生成周报
-- **提交前检查** — 比赛提交前自动检查所有材料是否齐全，给出评分
-- **多任务并行** — 同时管理多个比赛/项目的计划，支持切换和状态查看
-- **提醒推送** — 支持系统通知（macOS/Linux/Windows）、邮件、Webhook
-- **Git 提交自动关联** — 自动分析 Git 提交与任务的关联关系
-- **历史进度追踪** — 保存进度快照，支持趋势分析和预计完成时间
-- **跨平台日历** — 支持 macOS Calendar、Linux (gnome-calendar/korganizer)、Windows 默认日历
+| 特性 | 说明 |
+|------|------|
+| 🎯 **智能任务解析** | 从通知文本自动提取任务名称、截止时间、交付物、约束条件 |
+| 📋 **反向拆解计划** | 从最终交付物反向拆解 30-90 分钟的微任务，按优先级排序 |
+| 🔍 **真实进度检查** | 扫描项目目录 + Git 历史，基于文件证据计算进度百分比 |
+| 🔄 **自动重排** | 进度落后时自动压缩低优先级任务、重建时间线 |
+| 📅 **日历导出** | RFC 5545 标准 ICS 文件，含 VALARM 提醒 |
+| ⏰ **每日自动审查** | 定时检查项目进度，发送审查报告和提醒 |
+| 📊 **周报生成** | 根据本周完成的微任务和 Git 提交自动生成周报 |
+| ✅ **提交前检查** | 比赛提交前自动检查所有材料是否齐全，给出评分 |
+| 🚀 **多项目并行** | 同时管理多个比赛/项目的计划，支持切换和状态查看 |
+| 🔔 **智能提醒** | 支持系统通知（macOS/Linux/Windows）、邮件、Webhook |
 
-## 安装
+---
+
+## 🚀 快速开始
+
+### 作为 OpenClaw 插件（推荐）
 
 ```bash
-npm install
-npm run build
+# 1. 安装插件
+openclaw plugins install /path/to/ClawPlanOps --link
+
+# 2. 在对话中使用
+帮我规划一个比赛：
+- 名称：校园APP创新大赛
+- 截止时间：2026年7月15日
+- 交付物：APP原型、设计文档、演示视频
+- 团队：3人
+- 每天投入：3小时
 ```
-
-## 快速开始
-
-### 作为 OpenClaw 插件使用
-
-1. 将项目目录添加到 OpenClaw 插件路径
-2. 在对话中直接提供任务通知文本，ClawPlanOps 会自动解析并生成计划
-3. 使用 `/clawplanops` 命令触发完整流程
 
 ### 作为 CLI 使用
 
 ```bash
-# 完整 6 步流程
-claw-planops full <通知文件> <项目目录>
-claw-planops full <通知文件> <项目目录> --apple-cal # 同步导入 macOS 日历
-
-# 单步操作
-claw-planops parse <通知文件>              # 解析任务要求
-claw-planops plan <requirements.json>      # 生成交付物计划
-claw-planops calendar <plan.json>          # 导出 .ics 日历
-claw-planops calendar <plan.json> --apple-cal # 导入 macOS 日历
-claw-planops check <项目目录>              # 检查进度证据
-claw-planops report <项目目录> <plan.json> # 生成每日进度报告
-claw-planops reschedule <progress.json> <plan.json> # 动态重排建议
-
-# 新功能 (v0.3.0)
-claw-planops weekly <项目目录> <plan.json>      # 生成周报
-claw-planops presubmit <项目目录> <plan.json>   # 提交前检查
-claw-planops projects list                       # 列出并行项目
-claw-planops projects add <名称> <通知> <路径>   # 添加新项目
-claw-planops projects switch <id>                # 切换活动项目
-claw-planops git-link <项目目录> <plan.json>     # Git 提交关联
-claw-planops trend <项目目录>                    # 查看进度趋势
-claw-planops notify test                         # 测试系统通知
-claw-planops calendar-import <plan.json>         # 跨平台日历导入
-
-# AI 模式（更准确的解析）
-claw-planops parse <通知文件> --ai
-claw-planops parse <通知文件> --ai http://localhost:11434/v1/chat/completions
-```
-
-### 最小演示
-
-```bash
+# 安装
 npm install
 npm run build
-node dist/cli.js full examples/zzu_four_creation_notice.txt .
-bash examples/demo.sh
+
+# 完整流程
+claw-planops full <通知文件> <项目目录>
+
+# 单步操作
+claw-planops parse <通知文件>              # 解析任务
+claw-planops plan <requirements.json>      # 生成计划
+claw-planops calendar <plan.json>          # 导出日历
+claw-planops check <项目目录>              # 检查进度
+claw-planops daily <项目目录>              # 每日审查
 ```
 
 ### 作为库使用
@@ -87,43 +70,149 @@ import {
   buildDeliverablePlan,
   generateCalendarSchedule,
   checkProgressEvidence,
-  reschedulePlan,
+  dailyReview,
 } from 'claw-planops';
 
-// 1. 解析任务
+// 解析任务
 const reqs = await parseTaskRequirements({ content: noticeText });
 
-// 2. 生成计划（支持自定义模板）
+// 生成计划
 const plan = buildDeliverablePlan({
   task_requirements: reqs,
-  custom_templates: {
-    '商业计划书': {
-      sub_tasks: ['市场调研', '撰写正文', '财务分析'],
-      evidence: ['商业计划书.pdf'],
-    },
-  },
+  daily_available_hours: 3,
 });
 
-// 3. 导出日历
+// 导出日历
 const cal = generateCalendarSchedule({
   micro_tasks: plan.micro_tasks,
   start_date: plan.start_date,
   deadline: reqs.deadline,
-  preferred_work_time: '09:00-12:00',
 });
 
-// 4. 检查进度
+// 检查进度
 const progress = checkProgressEvidence({ project_path: './my-project' });
 
-// 5. 重排建议
-const reschedule = reschedulePlan({
-  progress_report: progress,
-  original_plan: plan,
-  deadline: reqs.deadline,
-});
+// 每日审查
+const review = dailyReview({ project_path: './my-project' });
 ```
 
-## 配置文件
+---
+
+## 📦 安装
+
+### 前置要求
+
+- Node.js >= 18
+- npm >= 9
+- OpenClaw >= 2026.3.24（作为插件使用时）
+
+### 从源码安装
+
+```bash
+# 克隆仓库
+git clone https://github.com/Yeezy7/ClawPlanOps.git
+cd ClawPlanOps
+
+# 安装依赖
+npm install
+
+# 构建
+npm run build
+```
+
+### 作为 OpenClaw 插件安装
+
+```bash
+# 方式 1：本地链接
+openclaw plugins install /path/to/ClawPlanOps --link
+
+# 方式 2：从 Git 安装
+openclaw plugins install git:github.com/Yeezy7/ClawPlanOps
+
+# 方式 3：从 npm 安装（发布后）
+openclaw plugins install claw-planops
+```
+
+---
+
+## 🛠️ 使用指南
+
+### 场景 1：规划新项目
+
+```
+帮我规划一个比赛：
+- 名称：校园APP创新大赛
+- 截止时间：2026年7月15日
+- 交付物：APP原型、设计文档、演示视频
+- 团队：3人
+- 每天投入：3小时
+- 项目目录：~/Projects/campus-app-contest
+```
+
+**输出示例：**
+
+```
+📋 项目计划已生成
+
+| 阶段 | 时间 | 交付物 | 微任务数 |
+|------|------|--------|----------|
+| 第1阶段 | 06-19 → 06-24 | APP原型 | 6 个 |
+| 第2阶段 | 06-25 → 06-30 | 设计文档 | 8 个 |
+| 第3阶段 | 07-01 → 07-06 | 演示视频 | 6 个 |
+
+总计：20 个微任务，26 天完成
+```
+
+### 场景 2：检查项目进度
+
+```
+检查一下 ~/Projects/campus-app-contest 的进度
+```
+
+**输出示例：**
+
+```
+📊 进度检查结果
+
+当前进度：45% ████████████░░░░░░░░
+风险等级：🟡 中
+
+✅ 已完成 (5 项)：
+- README.md
+- package.json
+- src/index.ts
+
+❌ 缺失 (3 项)：
+- 商业计划书.pdf (权重: 15)
+- 演示视频 (权重: 20)
+```
+
+### 场景 3：每日自动审查
+
+通过 cron 任务实现每日自动审查：
+
+```bash
+# 创建每日审查任务（每天早上 9:00）
+openclaw cron create "0 9 * * *" \
+  --name "每日项目审查" \
+  --session main \
+  --system-event "请执行每日项目审查" \
+  --tz "Asia/Shanghai"
+```
+
+### 场景 4：导出日历
+
+```
+导出日历到 ~/Projects/campus-app-contest
+```
+
+**输出：**
+- 生成 `schedule.ics` 文件
+- 包含 VALARM 提醒（30分钟前 + 高优任务1天前）
+
+---
+
+## 🔧 配置
 
 在项目根目录创建 `.planopsrc.json` 自定义行为：
 
@@ -133,12 +222,6 @@ const reschedule = reschedulePlan({
   "preferred_work_time": "09:00-12:00",
   "daily_available_hours": 3,
   "output_dir": "./output",
-  "deliverables": {
-    "商业计划书": {
-      "sub_tasks": ["市场调研", "撰写正文"],
-      "evidence": ["商业计划书.pdf"]
-    }
-  },
   "evidence_rules": [
     {
       "id": "CUSTOM-001",
@@ -153,95 +236,100 @@ const reschedule = reschedulePlan({
 }
 ```
 
-支持的配置文件名（按优先级）：`.planopsrc.json`、`.planops.json`、`planops.json`
+---
 
-## 输出文件
+## 📋 工具列表
 
-CLI 默认把计划、日历、进度报告、重排建议等生成物写入 `output/`。该目录属于运行输出，已在 `.gitignore` 中忽略，不建议作为源码交付物提交。
+| 工具 | 说明 |
+|------|------|
+| `clawplanops_parse_task_requirements` | 解析任务通知文本 |
+| `clawplanops_build_deliverable_plan` | 生成交付物计划 + 微任务 |
+| `clawplanops_generate_calendar_schedule` | 生成 .ics 日历文件 |
+| `clawplanops_check_progress_evidence` | 扫描项目文件 + Git 证据 |
+| `clawplanops_daily_review` | 每日项目审查 |
+| `clawplanops_generate_weekly_report` | 生成周报 |
+| `clawplanops_pre_submission_check` | 提交前检查 |
+| `clawplanops_reschedule_plan` | 动态重排建议 |
+| `clawplanops_multi_project_status` | 多项目状态概览 |
+| `clawplanops_git_task_link` | Git 提交关联分析 |
+| `clawplanops_progress_trend` | 进度趋势分析 |
+| `clawplanops_send_notification` | 发送系统通知 |
+| `clawplanops_cross_platform_calendar` | 跨平台日历导入 |
 
-## 工具列表
+---
 
-| 工具 | 说明 | 核心参数 |
-|------|------|----------|
-| `clawplanops_parse_task_requirements` | 解析任务通知文本（CLI 备用；技能流程优先由 AI 直接理解） | `content`, `input_type?` |
-| `clawplanops_build_deliverable_plan` | 生成交付物计划 + 微任务 | `task_requirements`, `available_days?`, `daily_available_hours?`, `custom_templates?` |
-| `clawplanops_generate_calendar_schedule` | 生成 .ics 日历文件 | `micro_tasks`, `start_date`, `deadline`, `preferred_work_time?` |
-| `clawplanops_check_progress_evidence` | 扫描项目文件 + Git 证据 | `project_path` |
-| `clawplanops_generate_daily_progress_report` | 生成每日进度报告 | `project_path`, `plan`, `schedule` |
-| `clawplanops_reschedule_plan` | 动态重排建议 | `progress_report`, `original_plan`, `deadline` |
-
-## 证据检查规则
-
-默认检查 12 项证据，权重总和 100：
-
-| 规则 | 检查内容 | 权重 |
-|------|----------|------|
-| E-001 | package.json 存在 | 10 |
-| E-002 | tsconfig.json 存在 | 5 |
-| E-003 | openclaw.plugin.json 存在 | 10 |
-| E-004 | README.md 存在且非空 | 10 |
-| E-005 | src/index.ts 存在 | 10 |
-| E-006 | src/tools/ 目录有 .ts 文件 | 10 |
-| E-007 | src/planner/ 目录存在 | 5 |
-| E-008 | examples/ 目录存在 | 5 |
-| E-009 | 申报书/申报表文件存在 | 10 |
-| E-010 | 答辩 PPT 文件存在 | 10 |
-| E-011 | 演示视频文件存在 | 10 |
-| E-012 | 最近 24 小时有文件修改 | 5 |
-
-可通过 `.planopsrc.json` 的 `evidence_rules` 字段自定义或覆盖。
-
-## 测试
-
-```bash
-npm run typecheck # 类型检查
-npm test          # 运行全部测试
-npm run test:watch # 监听模式
-npm run build     # 构建 dist 发布产物
-npm run delivery:check # 一键交付健康检查
-```
-
-## 项目结构
+## 📁 项目结构
 
 ```
-claw-planops/
+ClawPlanOps/
 ├── src/
 │   ├── index.ts              # 插件入口
 │   ├── cli.ts                # CLI 入口
-│   ├── types/index.ts        # 类型定义
+│   ├── types/                # 类型定义
 │   ├── planner/              # 规划模块
-│   │   ├── taskParser.ts     # 正则解析器
-│   │   ├── aiParser.ts       # AI 解析器
-│   │   ├── deliverablePlanner.ts
-│   │   ├── microTaskGenerator.ts
-│   │   └── rescheduler.ts
-│   ├── calendar/
-│   │   ├── icsExporter.ts    # ICS 日历生成
-│   │   └── appleCalendar.ts  # macOS 日历导入
-│   ├── evidence/
-│   │   ├── evidenceRules.ts  # 证据规则定义
-│   │   ├── fileScanner.ts    # 文件扫描器
-│   │   ├── gitEvidence.ts    # Git 证据
-│   │   └── progressScorer.ts # 进度评分
-│   ├── report/
-│   │   ├── dailyReport.ts
-│   │   └── markdownExporter.ts
-│   ├── config/
-│   │   └── projectConfig.ts
-│   ├── tools/                # 工具注册层
-│   └── utils/
-│       └── validation.ts     # 输入校验
-├── scripts/
-│   └── delivery-check.js     # 交付健康检查
-├── tests/                    # 单元测试 (116 tests)
+│   ├── calendar/             # 日历模块
+│   ├── evidence/             # 证据检查
+│   ├── report/               # 报告生成
+│   ├── config/               # 配置管理
+│   └── tools/                # 工具实现
 ├── skills/
 │   └── claw-planops/SKILL.md # OpenClaw 技能定义
-├── examples/
-│   ├── zzu_four_creation_notice.txt
-│   └── sample_project/
-└── openclaw.plugin.json      # 插件清单
+├── tests/                    # 单元测试
+├── examples/                 # 示例文件
+├── openclaw.plugin.json      # 插件清单
+└── package.json
 ```
 
-## License
+---
 
-MIT
+## 🧪 测试
+
+```bash
+# 类型检查
+npm run typecheck
+
+# 运行全部测试
+npm test
+
+# 监听模式
+npm run test:watch
+
+# 构建
+npm run build
+
+# 交付健康检查
+npm run delivery:check
+```
+
+---
+
+## 🤝 贡献
+
+欢迎贡献代码、报告问题或提出建议！
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'feat: add amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+---
+
+## 📄 许可证
+
+本项目基于 [MIT 许可证](LICENSE) 开源。
+
+---
+
+## 🔗 相关链接
+
+- [OpenClaw 文档](https://docs.openclaw.ai)
+- [ClawHub 插件市场](https://clawhub.ai)
+- [问题反馈](https://github.com/Yeezy7/ClawPlanOps/issues)
+
+---
+
+## 🙏 致谢
+
+- [OpenClaw](https://docs.openclaw.ai) - AI 助手框架
+- [ClawHub](https://clawhub.ai) - 插件市场
