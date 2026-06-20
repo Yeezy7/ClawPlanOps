@@ -1,6 +1,6 @@
 {
   "name": "claw-planops",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "description": "OpenClaw plugin: task parsing → plan generation → calendar export → progress evidence check → reschedule",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
