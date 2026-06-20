@@ -94,12 +94,21 @@ metadata: {"openclaw": {"emoji": "📋"}}
 **必须调用 `clawplanops_build_deliverable_plan`：**
 
 ```
-调用参数：
-- task_requirements: 包含 task_name, deadline, deliverables 等字段的对象
-- daily_available_hours: 每日可用小时数
+调用参数格式：
+{
+  "task_requirements": {
+    "task_name": "项目名称",
+    "deadline": "2026-07-15T23:59:00",
+    "deliverables": ["交付物1", "交付物2"],
+    "constraints": ["约束条件"],
+    "submission_rules": ["提交规则"],
+    "raw_input": "原始输入文本"
+  },
+  "daily_available_hours": 3
+}
 ```
 
-工具会生成标准化的阶段划分和微任务列表。
+**重要：** 必须传递 `task_requirements` 对象，不能传递空对象 `{}`。
 
 ### 第四步：展示计划摘要
 
